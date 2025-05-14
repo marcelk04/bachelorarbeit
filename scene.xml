@@ -1,16 +1,16 @@
 <scene version="3.0.0">
-	<!--
 	<integrator type="stokes">
 		<integrator type="path"/>
 	</integrator>
-	-->
+	<!--
 	<integrator type="path"/>
+	-->
 
 	<sensor type="perspective">
 		<transform name="to_world">
-			<lookat target="-5.0, 8.0, 20.0" origin="-100.0, 8.0, 35.0" up="0.0, 1.0, 0.0"/>
+			<lookat target="-1.0, 7.0, 0.0" origin="-10.0, 8.0, 30.0" up="0.0, 1.0, 0.0"/>
 			<!--
-			<lookat target="-1.0, 6.0, 0.0" origin="-10.0, 8.0, 35.0" up="0.0, 1.0, 0.0"/>
+			<lookat target="-5.0, 8.0, 20.0" origin="-100.0, 8.0, 35.0" up="0.0, 1.0, 0.0"/>
 			<lookat target="-5, 8, 20" origin="60, 8, 35" up="0, 1, 0"/>
 			-->
 		</transform>
@@ -27,27 +27,53 @@
 
 	<shape type="obj">
 		<string name="filename" value="meshes/low-res.obj"/>
+		<bsdf type="pplastic">
+			<float name="alpha" value="0.8"/>
+		</bsdf>
+		<!--
 		<bsdf type="diffuse">
 			<rgb name="reflectance" value="0.8"/>
 		</bsdf>
+		-->
 	</shape>
 
-	<!--
+	<!-- Light -->
 	<shape type="obj">
 		<string name="filename" value="meshes/plane.obj"/>
 		<transform name="to_world">
-			<translate x="-10" y="20" z="35"/>
+			<rotate y="1" angle="90"/>
+			<!--
+			-->
+			<translate x="-10" y="8" z="35"/>
+			<scale value="20"/>
 		</transform>
+
 		<emitter type="area">
-			<rgb name="radiance" value="100000.0"/>
+			<rgb name="radiance" value="1000"/>
 		</emitter>
+		<!--
+		<bsdf type="polarizer"/>
+		-->
 		<bsdf type="diffuse"/>
 	</shape>
-	-->
+
+	<!-- Polarizer -->
+	<shape type="obj">
+		<string name="filename" value="meshes/plane.obj"/>
+		<transform name="to_world">
+			<rotate x="1" angle="90"/>
+			<translate x="-10" y="8" z="32"/>
+			<scale value="40"/>
+		</transform>
+
+		<bsdf type="polarizer"/>
+	</shape>
+
+
 	<!--
-	-->
 	<emitter type="point">
 		<point name="position" value="-10, 20, 35"/>
 		<rgb name="intensity" value="1000.0"/>
 	</emitter>
+	-->
 </scene>
