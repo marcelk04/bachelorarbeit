@@ -1,0 +1,93 @@
+<scene version="3.0.0">
+	<integrator type="volpath"/>
+
+	<!-- <integrator type="stokes">
+		<integrator type="path"/>
+	</integrator> -->
+
+	<!-- Sensor -->
+	<sensor type="perspective" id="sensor">
+		<transform name="to_world">
+			<rotate y="1" angle="135"/>
+			<translate x="-30" y="8" z="30"/>
+			<!--
+			<lookat target="-1, 8, 0" origin="-8, 10, 30" up="0, 1, 0"/>
+			<lookat target="-5.0, 8.0, 20.0" origin="-100.0, 8.0, 35.0" up="0.0, 1.0, 0.0"/>
+			<lookat target="-1.0, 7.0, 0.0" origin="-10.0, 8.0, 30.0" up="0.0, 1.0, 0.0"/>
+			<lookat target="-5, 8, 20" origin="60, 8, 35" up="0, 1, 0"/>
+			-->
+		</transform>
+
+		<sampler type="independent">
+			<integer name="sample_count" value="32"/>
+		</sampler>
+
+		<film type="hdrfilm">
+			<integer name="width" value="512"/>
+			<integer name="height" value="512"/>
+		</film>
+	</sensor>
+
+	<!-- Textures -->
+	<texture type="bitmap" id="face_diffuse">
+		<string name="filename" value="textures/diffuse_albedo.exr"/>
+	</texture>
+
+	<texture type="bitmap" id="face_specular">
+		<string name="filename" value="textures/specular_intensity.exr"/>
+	</texture>
+
+	<!-- Face Object-->
+	<shape type="obj" id="face">
+		<string name="filename" value="meshes/low-res.obj"/>
+		<bsdf type="pplastic">
+			<ref id="face_diffuse" name="diffuse_reflectance"/>
+			<ref id="face_specular" name="specular_reflectance"/>
+			<float name="alpha" value="0.8"/>
+		</bsdf>
+	</shape>
+
+	<!-- Light -->
+	<shape type="obj" id="light">
+		<string name="filename" value="meshes/plane.obj"/>
+		<transform name="to_world">
+			<scale value="4"/>
+			<rotate y="1" angle="180"/>
+			<translate x="-1" y="8" z="35"/>
+		</transform>
+
+		<emitter type="area">
+			<rgb name="radiance" value="200"/>
+		</emitter>
+
+		<bsdf type="diffuse"/>
+	</shape>
+
+	<!-- Polarizers -->
+	<shape type="obj" id="polarizer_light">
+		<string name="filename" value="meshes/plane.obj"/>
+		<transform name="to_world">
+			<scale value="6"/>
+			<rotate y="1" angle="180"/>
+			<translate x="-1" y="8" z="34"/>
+		</transform>
+
+		<bsdf type="polarizer">
+			<spectrum name="theta" value="0"/>
+		</bsdf>
+	</shape>
+
+	<shape type="obj" id="polarizer_cam">
+		<string name="filename" value="meshes/plane.obj"/>
+		<transform name="to_world">
+			<scale value="6"/>
+			<rotate y="1" angle="135"/>
+			<translate x="-29" y="8" z="29"/>
+		</transform>
+
+		<bsdf type="polarizer">
+			<spectrum name="theta" value="0"/>
+		</bsdf>
+	</shape>
+
+</scene>
