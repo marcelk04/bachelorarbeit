@@ -39,6 +39,11 @@
 		<string name="filename" value="textures/specular_intensity.exr"/>
 	</texture>
 
+	<texture type="bitmap" id="face_normal">
+		<boolean name="raw" value="true"/>
+		<string name="filename" value="textures/spec_normal.exr"/>
+	</texture>
+
 	<!-- Face Object-->
 	<shape type="obj" id="face">
 		<string name="filename" value="meshes/low-res.obj"/>
@@ -59,7 +64,7 @@
 		</transform>
 
 		<emitter type="area">
-			<rgb name="radiance" value="200"/>
+			<rgb name="radiance" value="300"/>
 		</emitter>
 
 		<bsdf type="diffuse"/>
