@@ -1,0 +1,41 @@
+<scene version="3.0.0">
+	<integrator type="volpath" id="integrator">
+		<integer name="max_depth" value="-1"/>
+	</integrator>
+
+	<!-- Sensor -->
+	<sensor type="perspective" id="sensor">
+		<transform name="to_world">
+			<lookat target="0, 0, 0" origin="0, 0, 5" up="0, 1, 0"/>
+		</transform>
+
+		<sampler type="independent">
+			<integer name="sample_count" value="32"/>
+		</sampler>
+
+		<film type="hdrfilm">
+			<integer name="width" value="512"/>
+			<integer name="height" value="512"/>
+		</film>
+	</sensor>
+
+	<!-- Light -->
+	<shape type="obj" id="light">
+		<string name="filename" value="../meshes/plane.obj"/>
+
+		<transform name="to_world">
+			<scale value="1"/>
+			<rotate y="1" angle="180"/>
+			<translate x="0" y="0" z="6"/>
+		</transform>
+
+		<emitter type="area">
+			<rgb name="radiance" value="100"/>
+		</emitter>
+
+		<bsdf type="diffuse"/>
+	</shape>
+
+	<!-- Face -->
+	<include filename="centered_face.xml"/>
+</scene>
