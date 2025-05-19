@@ -1,0 +1,61 @@
+<scene version="3.0.0">
+	<!-- Integrator -->
+	<integrator type="volpath" id="integrator">
+		<integer name="max_depth" value="-1"/>
+		<boolean name="hide_emitters" value="true"/>
+	</integrator>
+
+	<!-- Sensor -->
+	<sensor type="perspective" id="sensor">
+		<transform name="to_world">
+			<lookat target="0, 0, 0" origin="0, 0, 4" up="0, 1, 0"/>
+		</transform>
+
+		<sampler type="independent">
+			<integer name="sample_count" value="32"/>
+		</sampler>
+
+		<film type="hdrfilm">
+			<integer name="width" value="512"/>
+			<integer name="height" value="512"/>
+		</film>
+	</sensor>
+
+	<!-- Face Object -->
+	<include filename="centered_face.xml"/>
+
+	<!-- Light Sphere -->
+	<shape type="sphere" id="light">
+		<point name="center" x="0" y="0" z="0"/>
+		<float name="radius" value="10"/>
+		<boolean name="flip_normals" value="true"/>
+
+		<emitter type="area">
+			<rgb name="radiance" value="4"/>
+		</emitter>
+
+		<bsdf type="diffuse"/>
+	</shape>
+
+	<!-- Polarizers -->
+	<shape type="sphere" id="polarizer_light">
+		<point name="center" x="0" y="0" z="0"/>
+		<float name="radius" value="9"/>
+
+		<bsdf type="polarizer">
+			<spectrum name="theta" value="0"/>
+		</bsdf>
+	</shape>
+
+	<shape type="obj" id="polarizer_cam">
+		<string name="filename" value="../meshes/plane.obj"/>
+
+		<transform name="to_world">
+			<lookat target="0, 0, 0" origin="0, 0, 3.5" up="0, 1, 0"/>
+		</transform>
+
+		<bsdf type="polarizer">
+			<spectrum name="theta" value="0"/>
+		</bsdf>
+	</shape>
+</scene>
