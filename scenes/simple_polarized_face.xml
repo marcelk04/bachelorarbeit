@@ -32,21 +32,21 @@
 
 	<!-- Textures -->
 	<texture type="bitmap" id="face_diffuse">
-		<string name="filename" value="textures/diffuse_albedo.exr"/>
+		<string name="filename" value="../textures/diffuse_albedo.exr"/>
 	</texture>
 
 	<texture type="bitmap" id="face_specular">
-		<string name="filename" value="textures/specular_intensity.exr"/>
+		<string name="filename" value="../textures/specular_intensity.exr"/>
 	</texture>
 
 	<texture type="bitmap" id="face_normal">
 		<boolean name="raw" value="true"/>
-		<string name="filename" value="textures/spec_normal.exr"/>
+		<string name="filename" value="../textures/spec_normal.exr"/>
 	</texture>
 
 	<!-- Face Object-->
 	<shape type="obj" id="face">
-		<string name="filename" value="meshes/low-res.obj"/>
+		<string name="filename" value="../meshes/low-res.obj"/>
 		<bsdf type="pplastic">
 			<ref id="face_diffuse" name="diffuse_reflectance"/>
 			<ref id="face_specular" name="specular_reflectance"/>
@@ -56,7 +56,7 @@
 
 	<!-- Light -->
 	<shape type="obj" id="light">
-		<string name="filename" value="meshes/plane.obj"/>
+		<string name="filename" value="../meshes/plane.obj"/>
 		<transform name="to_world">
 			<scale value="4"/>
 			<rotate y="1" angle="180"/>
@@ -72,7 +72,7 @@
 
 	<!-- Polarizers -->
 	<shape type="obj" id="polarizer_light">
-		<string name="filename" value="meshes/plane.obj"/>
+		<string name="filename" value="../meshes/plane.obj"/>
 		<transform name="to_world">
 			<scale value="6"/>
 			<rotate y="1" angle="180"/>
@@ -85,7 +85,7 @@
 	</shape>
 
 	<shape type="obj" id="polarizer_cam">
-		<string name="filename" value="meshes/plane.obj"/>
+		<string name="filename" value="../meshes/plane.obj"/>
 		<transform name="to_world">
 			<scale value="6"/>
 			<rotate y="1" angle="135"/>
