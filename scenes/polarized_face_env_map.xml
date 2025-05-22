@@ -1,8 +1,7 @@
 <scene version="3.0.0">
 	<!-- Integrator -->
-	<integrator type="volpath" id="integrator">
+	<integrator type="path" id="integrator">
 		<integer name="max_depth" value="-1"/>
-		<boolean name="hide_emitters" value="true"/>
 	</integrator>
 
 	<!-- Sensor -->
@@ -33,17 +32,23 @@
 		<emitter type="area">
 			<rgb name="radiance" value="4"/>
 		</emitter>
+		<!-- <emitter type="envmap">
+			<string name="filename" value="../textures/studio_small_02_4k.exr"/>
+			<float name="scale" value="8"/>
+		</emitter> -->
 
 		<bsdf type="diffuse"/>
 	</shape>
 
 	<!-- Polarizers -->
 	<shape type="sphere" id="polarizer_light">
-		<point name="center" x="0" y="0" z="0"/>
-		<float name="radius" value="9"/>
+		<transform name="to_world">
+			<scale value="9"/>
+			<rotate x="1" angle="90"/>
+		</transform>
 
 		<bsdf type="polarizer">
-			<spectrum name="theta" value="0"/>
+			<spectrum name="theta" value="90"/>
 		</bsdf>
 	</shape>
 
@@ -56,6 +61,7 @@
 
 		<bsdf type="polarizer">
 			<spectrum name="theta" value="0"/>
+			<boolean name="polarizing" value="true"/>
 		</bsdf>
 	</shape>
 </scene>

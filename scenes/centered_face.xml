@@ -10,7 +10,7 @@
 
 	<texture type="bitmap" id="face_normal">
 		<boolean name="raw" value="true"/>
-		<string name="filename" value="../textures/spec_normal.exr"/>
+		<string name="filename" value="../textures/diffuse_normal_r.exr"/>
 	</texture>
 
 	<!-- Face Object -->
@@ -20,7 +20,7 @@
 		<transform name="to_world">
 			<translate x="0" y="5.0986" z="0"/>
 			<scale value="0.0857405"/>
-			<translate x="0" y="-1" z="0"/>
+			<translate x="0" y="-1" z="0.5"/>
 		</transform>
 
 		<bsdf type="pplastic">
