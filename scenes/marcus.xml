@@ -1,0 +1,105 @@
+<scene version="3.0.0">
+	<!-- Integrator -->
+	<integrator type="path" id="integrator">
+		<integer name="max_depth" value="-1"/>
+	</integrator>
+
+	<!-- Sensor -->
+	<sensor type="perspective" id="sensor">
+		<transform name="to_world">
+			<lookat target="0, 0, 0" origin="0, 0, 4" up="0, 1, 0"/>
+		</transform>
+
+		<sampler type="independent">
+			<integer name="sample_count" value="32"/>
+		</sampler>
+
+		<film type="hdrfilm">
+			<integer name="width" value="512"/>
+			<integer name="height" value="512"/>
+		</film>
+	</sensor>
+
+	<!-- Textures -->
+	<texture type="bitmap" id="face_diffuse">
+		<string name="filename" value="../head_models/Marcus_PBR_Sample_01/Textures/Marcus_38_diffuse.png"/>
+	</texture>
+	
+	<texture type="bitmap" id="face_specular">
+		<string name="filename" value="../head_models/Marcus_PBR_Sample_01/Textures/Marcus_01_specular.png"/>
+	</texture>
+	
+	<texture type="bitmap" id="face_normal">
+		<boolean name="raw" value="true"/>
+		<string name="filename" value="../head_models/Marcus_PBR_Sample_01/Textures/Marcus_38_normal.png"/>
+	</texture>
+
+	<texture type="bitmap" id="face_displacement">
+		<boolean name="raw" value="true"/>
+		<string name="filename" value="../head_models/Marcus_PBR_Sample_01/Textures/Marcus_38_Displace.exr"/>
+	</texture>
+
+	<!-- Head Object -->
+	<shape type="obj" id="head">
+		<string name="filename" value="../head_models/Marcus_PBR_Sample_01/OBJ/Marcus_PBR_Sample_01.obj"/>
+		<boolean name="flip_tex_coords" value="false"/>
+
+		<transform name="to_world">
+			<scale value="0.053723372"/>
+			<translate x="0" y="-1" z="0"/>
+		</transform>
+
+		<bsdf type="normalmap">
+			<ref id="face_normal" name="normalmap"/>
+
+			<bsdf type="bumpmap">
+				<ref id="face_displacement" name="bumpmap"/>
+				<float name="scale" value="0.5"/>
+
+				<bsdf type="pplastic">
+					<ref id="face_diffuse" name="diffuse_reflectance"/>
+					<ref id="face_specular" name="specular_reflectance"/>
+					<float name="alpha" value="0.8"/>
+				</bsdf>
+			</bsdf>
+		</bsdf>
+	</shape>
+
+	<!-- Light Sphere -->
+	<shape type="sphere" id="light">
+		<point name="center" x="0" y="0" z="0"/>
+		<float name="radius" value="10"/>
+		<boolean name="flip_normals" value="true"/>
+
+		<emitter type="area">
+			<rgb name="radiance" value="2"/>
+		</emitter>
+
+		<bsdf type="diffuse"/>
+	</shape>
+
+	<!-- Polarizers -->
+	<shape type="sphere" id="polarizer_light">
+		<transform name="to_world">
+			<scale value="9"/>
+			<rotate x="1" angle="90"/>
+		</transform>
+
+		<bsdf type="polarizer">
+			<spectrum name="theta" value="90"/>
+		</bsdf>
+	</shape>
+
+	<shape type="obj" id="polarizer_cam">
+		<string name="filename" value="../meshes/plane.obj"/>
+
+		<transform name="to_world">
+			<lookat target="0, 0, 0" origin="0, 0, 3.5" up="0, 1, 0"/>
+		</transform>
+
+		<bsdf type="polarizer">
+			<spectrum name="theta" value="0"/>
+			<boolean name="polarizing" value="true"/>
+		</bsdf>
+	</shape>
+</scene>
