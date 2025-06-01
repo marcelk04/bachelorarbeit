@@ -2,7 +2,7 @@
 	<path value="../.."/>
 
 	<!-- Integrator -->
-	<integrator type="volpath" id="integrator">
+	<integrator type="path" id="integrator">
 		<integer name="max_depth" value="-1"/>
 	</integrator>
 
@@ -33,13 +33,8 @@
 		</transform>
 		<boolean name="flip_normals" value="true"/>
 
-		<!-- <emitter type="area">
+		<emitter type="area">
 			<rgb name="radiance" value="2"/>
-		</emitter> -->
-
-		<emitter type="envmap">
-			<string name="filename" value="textures/studio_small_02_4k.exr"/>
-			<float name="scale" value="8.0"/>
 		</emitter>
 
 		<bsdf type="diffuse"/>

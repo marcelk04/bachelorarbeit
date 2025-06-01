@@ -1,0 +1,48 @@
+<scene version="3.0.0">
+	<path value=".."/>
+
+	<!-- Textures -->
+	<texture type="bitmap" id="face_diffuse">
+		<string name="filename" value="head_models/Marcus_PBR_Sample_01/Textures/Marcus_38_diffuse.png"/>
+	</texture>
+	
+	<texture type="bitmap" id="face_specular">
+		<string name="filename" value="head_models/Marcus_PBR_Sample_01/Textures/Marcus_01_specular.png"/>
+	</texture>
+	
+	<texture type="bitmap" id="face_normal">
+		<boolean name="raw" value="true"/>
+		<string name="filename" value="head_models/Marcus_PBR_Sample_01/Textures/Marcus_38_normal.png"/>
+	</texture>
+
+	<texture type="bitmap" id="face_displacement">
+		<boolean name="raw" value="true"/>
+		<string name="filename" value="head_models/Marcus_PBR_Sample_01/Textures/Marcus_38_Displace.exr"/>
+	</texture>
+
+	<!-- Head Object -->
+	<shape type="obj" id="head">
+		<string name="filename" value="head_models/Marcus_PBR_Sample_01/OBJ/Marcus_PBR_Sample_01.obj"/>
+		<boolean name="flip_tex_coords" value="false"/>
+
+		<transform name="to_world">
+			<scale value="0.053723372"/>
+			<translate x="0" y="-1" z="0"/>
+		</transform>
+
+		<bsdf type="normalmap">
+			<ref id="face_normal" name="normalmap"/>
+
+			<bsdf type="bumpmap">
+				<ref id="face_displacement" name="bumpmap"/>
+				<float name="scale" value="1.0"/>
+
+				<bsdf type="pplastic">
+					<ref id="face_diffuse" name="diffuse_reflectance"/>
+					<ref id="face_specular" name="specular_reflectance"/>
+					<float name="alpha" value="0.8"/>
+				</bsdf>
+			</bsdf>
+		</bsdf>
+	</shape>
+</scene>
