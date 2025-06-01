@@ -1,5 +1,5 @@
 <scene version="3.0.0">
-	<path value="../.."/>
+	<path value=".."/>
 
 	<!-- Integrator -->
 	<integrator type="path" id="integrator">
@@ -52,10 +52,21 @@
 		</bsdf>
 	</shape>
 
-	<shape type="obj" id="polarizer_cam">
+	<!-- <shape type="obj" id="polarizer_cam">
 		<string name="filename" value="meshes/plane.obj"/>
 
 		<transform name="to_world">
+			<lookat target="0, 0, 0" origin="0, 0, 3.5" up="0, 1, 0"/>
+		</transform>
+
+		<bsdf type="polarizer">
+			<spectrum name="theta" value="0"/>
+			<boolean name="polarizing" value="true"/>
+		</bsdf>
+	</shape> -->
+	<shape type="rectangle" id="polarizer_cam">
+		<transform name="to_world">
+			<rotate z="1" angle="90"/>
 			<lookat target="0, 0, 0" origin="0, 0, 3.5" up="0, 1, 0"/>
 		</transform>
 

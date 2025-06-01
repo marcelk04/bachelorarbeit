@@ -30,14 +30,14 @@
 			<translate x="0" y="-1" z="0"/>
 		</transform>
 
-		<bsdf type="normalmap">
+		<bsdf type="normalmap" id="normalmap">
 			<ref id="face_normal" name="normalmap"/>
 
-			<bsdf type="bumpmap">
+			<bsdf type="bumpmap" id="bumpmap">
 				<ref id="face_displacement" name="bumpmap"/>
 				<float name="scale" value="1.0"/>
 
-				<bsdf type="pplastic">
+				<bsdf type="pplastic" id="material">
 					<ref id="face_diffuse" name="diffuse_reflectance"/>
 					<ref id="face_specular" name="specular_reflectance"/>
 					<float name="alpha" value="0.8"/>
