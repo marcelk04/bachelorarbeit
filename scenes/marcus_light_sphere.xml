@@ -1,6 +1,11 @@
 <scene version="3.0.0">
 	<path value=".."/>
 
+	<default name="spp" value="512"/>
+	<default name="res" value="512"/>
+	<default name="polarization_angle" value="0"/>
+	<default name="polarizing" value="true"/>
+
 	<!-- Integrator -->
 	<integrator type="path" id="integrator">
 		<integer name="max_depth" value="-1"/>
@@ -13,12 +18,12 @@
 		</transform>
 
 		<sampler type="independent">
-			<integer name="sample_count" value="32"/>
+			<integer name="sample_count" value="$spp"/>
 		</sampler>
 
 		<film type="hdrfilm">
-			<integer name="width" value="512"/>
-			<integer name="height" value="512"/>
+			<integer name="width" value="$res"/>
+			<integer name="height" value="$res"/>
 		</film>
 	</sensor>
 
@@ -49,6 +54,7 @@
 
 		<bsdf type="polarizer">
 			<spectrum name="theta" value="90"/>
+			<boolean name="polarizing" value="$polarizing"/>
 		</bsdf>
 	</shape>
 
@@ -71,8 +77,8 @@
 		</transform>
 
 		<bsdf type="polarizer">
-			<spectrum name="theta" value="0"/>
-			<boolean name="polarizing" value="true"/>
+			<spectrum name="theta" value="$polarization_angle"/>
+			<boolean name="polarizing" value="$polarizing"/>
 		</bsdf>
 	</shape>
 </scene>
