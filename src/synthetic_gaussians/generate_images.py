@@ -34,7 +34,11 @@ def view_matrix_inverse(view_matrix):
 	return view_matrix
 
 def fov_to_focal(fov, w):
-	return w / (2 * np.tan(fov / 2))
+	return w / (2 * np.tan(np.deg2rad(fov) / 2))
+
+def render_masks(scene_path, output_path, radius, thetas, phis):
+	os.makedirs(os.path.join(output_path, "masks"), exist_ok=True)
+	mi.set_variant("cuda_ad_rgb")
 
 def render_unpolarized_images(scene_path, output_path, radius, thetas, phis):
 	os.makedirs(os.path.join(output_path, "unpolarized"), exist_ok=True)
@@ -87,16 +91,23 @@ def output_camera_calibration(scene_path, output_path, radius, thetas, phis):
 
 	for i, theta, phi in zip(range(len(thetas)), thetas, phis):
 		camera_position = spherical_to_cartesian(radius, theta, phi)
-		transform = mi.ScalarTransform4f().look_at(origin=camera_position, target=[0, 0, 0], up=[0, 1, 0])
-		view_matrix = transform.matrix.numpy()
+		transform = mi.Transform4f().look_at(origin=camera_position, target=[0, 0, 0], up=[0, -1, 0])
+		view_matrix = transform.matrix.numpy()[..., 0]
+
+		# R = np.array([[-1, 0, 0], [0, -1, 0], [0, 0, -1]])
+		# view_matrix[:3, :3] = R @ view_matrix[:3, :3]
+		# view_matrix[:3, 3] = R @ view_matrix[:3, 3]
+
 		view_matrix = view_matrix_inverse(view_matrix)
 
 		extr_obj = {}
 		extr_obj["view_matrix"] = view_matrix.flatten().tolist()
 
 		cam_matrix = np.identity(3)
-		cam_matrix[0, 0] = focal_length
-		cam_matrix[1, 1] = focal_length
+		# cam_matrix[0, 0] = focal_length
+		# cam_matrix[1, 1] = focal_length
+		cam_matrix[0, 0] = 1228.8
+		cam_matrix[1, 1] = 1228.8
 		cam_matrix[0, 2] = principal_point_x
 		cam_matrix[1, 2] = principal_point_y
 
@@ -134,7 +145,7 @@ def main():
 		os.makedirs(args.output)
 
 	thetas_0 = np.array([0.25*np.pi, 0.5*np.pi, 0.75*np.pi])
-	phis_0 = np.linspace(0, 2*np.pi, 8, endpoint=False)
+	phis_0 = np.linspace(0, 2*np.pi, 16, endpoint=False)
 
 	thetas, phis = np.meshgrid(thetas_0, phis_0)
 	thetas = thetas.flatten()
@@ -142,8 +153,8 @@ def main():
 
 	radius = 4
 
-	render_unpolarized_images(args.scene, args.output, radius, thetas, phis)
-	render_polarized_images(args.scene, args.output, radius, thetas, phis)
+	# render_unpolarized_images(args.scene, args.output, radius, thetas, phis)
+	# render_polarized_images(args.scene, args.output, radius, thetas, phis)
 
 	output_camera_calibration(args.scene, args.output, radius, thetas, phis)
 

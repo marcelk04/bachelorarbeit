@@ -2,7 +2,7 @@
 	<path value=".."/>
 
 	<default name="spp" value="512"/>
-	<default name="res" value="512"/>
+	<default name="res" value="1024"/>
 	<default name="polarization_angle" value="0"/>
 	<default name="polarizing" value="true"/>
 

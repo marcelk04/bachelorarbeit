@@ -1,0 +1,48 @@
+<scene version="3.0.0">
+    <path value=".."/>
+
+	<default name="spp" value="512"/>
+	<default name="res" value="1024"/>
+	<default name="polarization_angle" value="0"/>
+	<default name="polarizing" value="true"/>
+
+	<!-- Integrator -->
+	<integrator type="path" id="integrator">
+		<integer name="max_depth" value="-1"/>
+	</integrator>
+
+	<!-- Sensor -->
+	<sensor type="perspective" id="sensor">
+		<transform name="to_world">
+			<lookat target="0, 0, 0" origin="0, 0, 4" up="0, 1, 0"/>
+		</transform>
+
+		<sampler type="independent">
+			<integer name="sample_count" value="$spp"/>
+		</sampler>
+
+		<film type="hdrfilm">
+			<integer name="width" value="$res"/>
+			<integer name="height" value="$res"/>
+		</film>
+	</sensor>
+
+	<!-- Head Object -->
+	<shape type="obj" id="head">
+		<string name="filename" value="head_models/Marcus_PBR_Sample_01/OBJ/Marcus_PBR_Sample_01.obj"/>
+		<boolean name="flip_tex_coords" value="false"/>
+
+		<transform name="to_world">
+			<scale value="0.053723372"/>
+			<translate x="0" y="-1" z="0"/>
+		</transform>
+
+		<bsdf type="diffuse">
+            <rgb name="reflectance" value="1.0"/>
+        </bsdf>
+
+        <emitter type="area">
+            <rgb name="radiance" value="1.0"/>
+        </emitter>
+	</shape>
+</scene>
