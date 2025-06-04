@@ -130,7 +130,7 @@ def extract_poses(calibration_file: str, output_path: str) -> None:
 
 	print("Done writing text output")
 
-def run_colmap(image_source: str, output_path: str):
+def run_colmap(image_source: str, mask_source: str, output_path: str):
 	manual_path = os.path.join(output_path, "manual")
 	# undistorted_path = os.path.join(output_path, "images")
 	distorted_path = os.path.join(output_path, "distorted")
@@ -146,7 +146,8 @@ def run_colmap(image_source: str, output_path: str):
 
 	feature_extract = f"colmap feature_extractor \
 		--database_path {db_path} \
-		--image_path {image_source}" # --SiftExtraction.estimate_affine_shape=true  --SiftExtraction.domain_size_pooling=true 
+		--image_path {image_source} \
+		--ImageReader.mask_path {mask_source}" # --SiftExtraction.estimate_affine_shape=true  --SiftExtraction.domain_size_pooling=true 
 	exec_cmd(feature_extract)
 
 	feature_matcher = f"colmap exhaustive_matcher \
@@ -188,13 +189,14 @@ def run_colmap(image_source: str, output_path: str):
 
 def main():
 	parser = argparse.ArgumentParser(prog="python pre_vci.py")
-	parser.add_argument("--source_path", "-s", type=str)
+	parser.add_argument("--image_source", "-s", type=str)
+	parser.add_argument("--mask_source", "-m", type=str)
 	parser.add_argument("--calibration_file", "-c", type=str)
 	parser.add_argument("--output", "-o", type=str)
 	args = parser.parse_args()
 
 	extract_poses(args.calibration_file, args.output)
-	run_colmap(args.source_path, args.output)
+	run_colmap(args.image_source, args.mask_source, args.output)
 
 if __name__ == "__main__":
 	main()
