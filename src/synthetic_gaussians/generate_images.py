@@ -12,15 +12,7 @@ sys.path.append("..")
 from helpers.polarization_helpers import *
 from helpers.render_helpers import *
 from helpers.math_helpers import *
-
-def to_ski_image(image):
-	image[image < 0] = 0 # Clip negative values
-
-	image = image ** (1.0 / 2.2) # Gamma correction
-	image = np.clip(image, 0, 1) # Clip again
-	image = np.uint8(image * 255.0) # Convert to integer range [0, 255]
-
-	return image
+from helpers.sys_helpers import *
 
 
 def render_masks(scene_path, output_path, radius, thetas, phis):

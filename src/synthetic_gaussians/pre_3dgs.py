@@ -10,41 +10,8 @@ import sys
 sys.path.append("..")
 
 from database import *
-
-def create_dir(path: str) -> bool:
-	if not os.path.exists(path):
-		os.makedirs(path)
-		return True
-	
-	return False
-
-def write_lines_to_file(lines: list[str], path: str) -> None:
-	with open(path, "w") as f:
-		for line in lines:
-			f.write(line)
-
-def rotmat2qvec(R):
-    Rxx, Ryx, Rzx, Rxy, Ryy, Rzy, Rxz, Ryz, Rzz = R.flat
-    K = np.array([
-        [Rxx - Ryy - Rzz, 0, 0, 0],
-        [Ryx + Rxy, Ryy - Rxx - Rzz, 0, 0],
-        [Rzx + Rxz, Rzy + Ryz, Rzz - Rxx - Ryy, 0],
-        [Ryz - Rzy, Rzx - Rxz, Rxy - Ryx, Rxx + Ryy + Rzz]]) / 3.0
-    eigvals, eigvecs = np.linalg.eigh(K)
-    qvec = eigvecs[[3, 0, 1, 2], np.argmax(eigvals)]
-    if qvec[0] < 0:
-        qvec *= -1
-    return qvec
-
-def exec_cmd(cmd: str) -> None:
-	print(f"Executing '{cmd}'")
-
-	exit_code = os.system(cmd)
-
-	if exit_code != 0:
-		exit(exit_code)
-
-	print()
+from helpers.math_helpers import *
+from helpers.sys_helpers import *
 
 def extract_poses(calibration_file: str, output_path: str) -> None:
 	# Set camera model
