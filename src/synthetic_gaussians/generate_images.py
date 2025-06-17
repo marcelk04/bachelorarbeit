@@ -56,7 +56,7 @@ def render_polarized_images(scene_path, output_path, radius, thetas, phis, masks
 
 	images = render_from_angles(scene, radius, thetas, phis, polarized=True)
 
-	for i, res in tqdm(enumerate(images), desc="Saving images", total=len(img_0)):
+	for i, res in tqdm(enumerate(images), desc="Saving images", total=len(images)):
 		img_0, img_90 = res
 
 		ski.io.imsave(os.path.join(output_path, "polarized_0", str(i).zfill(4) + ".png"), to_ski_image(img_0 * masks[i]), check_contrast=False)
@@ -129,7 +129,7 @@ def main():
 		os.makedirs(args.output)
 
 	thetas_0 = np.array([0.35*np.pi, 0.5*np.pi, 0.65*np.pi])
-	phis_0 = np.linspace(0, 2*np.pi, 16, endpoint=False)
+	phis_0 = np.linspace(0, 2*np.pi, 2, endpoint=False)
 
 	thetas, phis = np.meshgrid(thetas_0, phis_0)
 	thetas = thetas.flatten()
@@ -137,10 +137,10 @@ def main():
 
 	radius = 4
 
-	# masks = render_masks(args.scene, args.output, radius, thetas, phis)
+	masks = render_masks(args.scene, args.output, radius, thetas, phis)
 
-	# render_unpolarized_images(args.scene, args.output, radius, thetas, phis, masks)
-	# render_polarized_images(args.scene, args.output, radius, thetas, phis, masks)
+	render_unpolarized_images(args.scene, args.output, radius, thetas, phis, masks)
+	render_polarized_images(args.scene, args.output, radius, thetas, phis, masks)
 
 	output_camera_calibration(args.scene, args.output, radius, thetas, phis)
 
