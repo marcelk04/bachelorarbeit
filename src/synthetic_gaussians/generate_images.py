@@ -17,59 +17,85 @@ from helpers.math_helpers import *
 from helpers.sys_helpers import *
 
 
-def render_masks(scene_path, output_path, radius, thetas, phis):
+def render_masks(scene, output_path, radius, thetas, phis):
 	os.makedirs(os.path.join(output_path, "masks"), exist_ok=True)
-	mi.set_variant("cuda_ad_rgb")
+	print("Generating alpha masks...")
 
-	print("Loading mask scene")
-	scene = mi.load_file("/home/student_kaempchen/bachelorarbeit/scenes/marcus_mask.xml")
+	params = mi.traverse(scene)
 
-	masks = render_from_angles(scene, radius, thetas, phis, polarized=False)
-	masks = [np.clip(mask, 0, 1) for mask in masks]
+	# Save old transforms
+	polarizer_light_transform = mi.Transform4f(params["polarizer_light.to_world"])
+	polarizer_cam_transform = mi.Transform4f(params["polarizer_cam.to_world"])
 
-	for i, mask in tqdm(enumerate(masks), desc="Saving masks", total=len(masks)):
+	# Move polarizers away
+	params["polarizer_light.to_world"] = mi.Transform4f().translate([100, 100, 100])
+	params["polarizer_cam.to_world"] = mi.Transform4f().translate([100, 100, 100])
+	params.update()
+
+
+	cam_transform = params["sensor.to_world"].matrix.numpy()
+	cam_pos = cam_transform[:3, 3]
+
+	positions = np.array(params["head.vertex_positions"]).reshape(3, -1)
+
+	positions = positions - cam_pos
+	dist = np.linalg.norm(positions, ord=2, axis=0)
+
+	threshold = dist.max()
+
+	integrator = mi.load_dict({
+		"type": "depth"
+	})
+
+	images = render_from_angles(scene, radius, thetas, phis, polarized=False, integrator=integrator)
+	images = np.average(images, axis=-1) # convert to grayscale
+
+	background = images > threshold
+
+	masks = np.full_like(images, 1.0)
+	masks[background] = 0.0
+
+	# Undo changes to scenes
+	params["polarizer_light.to_world"] = polarizer_light_transform
+	params["polarizer_cam.to_world"] = polarizer_cam_transform
+	params.update()
+
+	for i, mask in tqdm(enumerate(masks), desc="Saving", total=len(masks)):
 		ski.io.imsave(os.path.join(output_path, "masks", str(i).zfill(4) + ".png.png"), to_ski_image(mask), check_contrast=False)
 
 	print()
 
 	return masks
 
-def render_unpolarized_images(scene_path, output_path, radius, thetas, phis, masks):
+def render_unpolarized_images(scene, output_path, radius, thetas, phis, masks):
+	print("Generating unpolarized images...")
 	os.makedirs(os.path.join(output_path, "unpolarized"), exist_ok=True)
-	mi.set_variant("cuda_ad_spectral")
-
-	print("Loading unpolarized scene")
-	scene = mi.load_file(scene_path)
 
 	images = render_from_angles(scene, radius, thetas, phis, polarized=False)
 
-	for i, image in tqdm(enumerate(images), desc="Saving images", total=len(images)):
-		ski.io.imsave(os.path.join(output_path, "unpolarized", str(i).zfill(4) + ".png"), to_ski_image(image * masks[i]), check_contrast=False)
+	for i, image in tqdm(enumerate(images), desc="Saving", total=len(images)):
+		ski.io.imsave(os.path.join(output_path, "unpolarized", str(i).zfill(4) + ".png"), to_ski_image(image * masks[i, ..., None]), check_contrast=False)
 	
 	print()
 
-def render_polarized_images(scene_path, output_path, radius, thetas, phis, masks):
+def render_polarized_images(scene, output_path, radius, thetas, phis, masks):
+	print("Generating polarized images...")
 	os.makedirs(os.path.join(output_path, "polarized_0"), exist_ok=True)
 	os.makedirs(os.path.join(output_path, "polarized_90"), exist_ok=True)
-	mi.set_variant("cuda_ad_spectral_polarized")
-
-	print("Loading scene")
-	scene = mi.load_file(scene_path)
 
 	images = render_from_angles(scene, radius, thetas, phis, polarized=True)
 
-	for i, res in tqdm(enumerate(images), desc="Saving images", total=len(images)):
+	for i, res in tqdm(enumerate(images), desc="Saving", total=len(images)):
 		img_0, img_90 = res
 
-		ski.io.imsave(os.path.join(output_path, "polarized_0", str(i).zfill(4) + ".png"), to_ski_image(img_0 * masks[i]), check_contrast=False)
-		ski.io.imsave(os.path.join(output_path, "polarized_90", str(i).zfill(4) + ".png"), to_ski_image(img_90 * masks[i]), check_contrast=False)
+		ski.io.imsave(os.path.join(output_path, "polarized_0", str(i).zfill(4) + ".png"), to_ski_image(img_0 * masks[i, ..., None]), check_contrast=False)
+		ski.io.imsave(os.path.join(output_path, "polarized_90", str(i).zfill(4) + ".png"), to_ski_image(img_90 * masks[i, ..., None]), check_contrast=False)
 
 	print()
 
-def output_camera_calibration(scene_path, output_path, radius, thetas, phis):
-	print("Outputting camera poses")
-	mi.set_variant("cuda_ad_rgb")
-	scene = mi.load_file(scene_path)
+def output_camera_calibration(scene, output_path, radius, thetas, phis):
+	print("Generating camera poses...")
+	
 	params = mi.traverse(scene)
 
 	width, height = params["sensor.film.size"]
@@ -139,12 +165,19 @@ def main():
 
 	radius = 4
 
-	masks = render_masks(args.scene, args.output, radius, thetas, phis)
+	print("Loading scenes...")
+	mi.set_variant("cuda_ad_spectral_polarized")
+	polarized_scene = mi.load_file(args.scene)
+	unpolarized_scene = mi.load_file(args.scene, polarizing=False)
+	print("Done.")
+	print()
 
-	render_unpolarized_images(args.scene, args.output, radius, thetas, phis, masks)
-	render_polarized_images(args.scene, args.output, radius, thetas, phis, masks)
+	masks = render_masks(polarized_scene, args.output, radius, thetas, phis)
 
-	output_camera_calibration(args.scene, args.output, radius, thetas, phis)
+	render_unpolarized_images(unpolarized_scene, args.output, radius, thetas, phis, masks)
+	render_polarized_images(polarized_scene, args.output, radius, thetas, phis, masks)
+
+	output_camera_calibration(polarized_scene, args.output, radius, thetas, phis)
 
 if __name__ == "__main__":
 	main()

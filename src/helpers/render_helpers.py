@@ -9,7 +9,13 @@ def spherical_to_cartesian(radius, theta, phi):
 
 	return np.array([x, y, z])
 
-def render_from_angle(scene, radius, theta, phi, polarized=True, spp=512):
+def render_np(scene, spp, integrator=None):
+	if type(integrator) == type(None):
+		return mi.render(scene, spp=spp).numpy()
+	else:
+		return mi.render(scene, spp=spp, integrator=integrator).numpy()
+
+def render_from_angle(scene, radius, theta, phi, polarized=True, spp=512, integrator=None):
 	cam_pos = spherical_to_cartesian(radius, theta, phi)
 	polarizer_pos = spherical_to_cartesian(radius - 0.1, theta, phi)
 
@@ -23,19 +29,19 @@ def render_from_angle(scene, radius, theta, phi, polarized=True, spp=512):
 	params.update()
 
 	if polarized:
-		img_0 = mi.render(scene, spp=spp).numpy()
+		img_0 = render_np(scene, spp, integrator)
 
 		params["polarizer_cam.bsdf.theta.value"] = 90
 		params.update()
 
-		img_90 = mi.render(scene, spp=spp).numpy()
+		img_90 = render_np(scene, spp, integrator)
 
 		return (img_0, img_90)
 	else:
-		return mi.render(scene, spp=spp).numpy()
+		return render_np(scene, spp, integrator)
 	
-def render_from_angles(scene, radius, thetas, phis, polarized=True, spp=512):
+def render_from_angles(scene, radius, thetas, phis, polarized=True, spp=512, integrator=None):
 	images = []
-	for theta, phi in tqdm(zip(thetas, phis), desc="Rendering images", total=len(thetas)):
-		images.append(render_from_angle(scene, radius, theta, phi, polarized, spp))
+	for theta, phi in tqdm(zip(thetas, phis), desc="Rendering", total=len(thetas)):
+		images.append(render_from_angle(scene, radius, theta, phi, polarized, spp, integrator))
 	return images
