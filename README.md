@@ -3,11 +3,11 @@
 Environment for Mitsuba and COLMAP:
 
 ```bash
-conda env create --file=environment.yml
+conda env create -f environment.yml
 ```
 
 Environment for Gaussian Splatting:
 
 ```bash
-conda env create --file=submodules/gaussian-splatting/environment.yml
+conda env create -f submodules/gaussian-splatting/environment.yml
 ```
