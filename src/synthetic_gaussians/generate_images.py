@@ -6,8 +6,10 @@ import os
 import json
 from tqdm import tqdm
 
+from pathlib import Path
 import sys
-sys.path.append("..")
+path_root = Path(__file__).parents[1]
+sys.path.append(str(path_root))
 
 from helpers.polarization_helpers import *
 from helpers.render_helpers import *
@@ -129,7 +131,7 @@ def main():
 		os.makedirs(args.output)
 
 	thetas_0 = np.array([0.35*np.pi, 0.5*np.pi, 0.65*np.pi])
-	phis_0 = np.linspace(0, 2*np.pi, 2, endpoint=False)
+	phis_0 = np.linspace(0, 2*np.pi, 16, endpoint=False)
 
 	thetas, phis = np.meshgrid(thetas_0, phis_0)
 	thetas = thetas.flatten()

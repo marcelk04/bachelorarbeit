@@ -6,8 +6,10 @@ import numpy as np
 from tqdm import tqdm
 
 # dont question this ... :/
+from pathlib import Path
 import sys
-sys.path.append("..")
+path_root = Path(__file__).parents[1]
+sys.path.append(str(path_root))
 
 from database import *
 from helpers.math_helpers import *
