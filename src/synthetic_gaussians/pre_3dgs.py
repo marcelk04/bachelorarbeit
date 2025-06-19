@@ -98,6 +98,7 @@ def extract_poses(calibration_file: str, output_path: str) -> None:
 	write_lines_to_file([], os.path.join(manual_path, "points3D.txt"))
 
 	print("Done writing text output")
+	print()
 
 def run_colmap(image_source: str, mask_source: str, output_path: str):
 	manual_path = os.path.join(output_path, "manual")
@@ -108,15 +109,14 @@ def run_colmap(image_source: str, mask_source: str, output_path: str):
 
 	create_dir(sparse_path)
 
-	print("Starting COLMAP...")
-
 	print("Starting sparse reconstruction...")
 	print()
 
 	feature_extract = f"colmap feature_extractor \
 		--database_path {db_path} \
-		--image_path {image_source} \
-		--ImageReader.mask_path {mask_source}" # --SiftExtraction.estimate_affine_shape=true  --SiftExtraction.domain_size_pooling=true 
+		--image_path {image_source}" # --SiftExtraction.estimate_affine_shape=true  --SiftExtraction.domain_size_pooling=true 
+	if type(mask_source) != type(None):
+		feature_extract += f" --ImageReader.mask_path {mask_source}"
 	exec_cmd(feature_extract)
 
 	feature_matcher = f"colmap exhaustive_matcher \
@@ -158,14 +158,39 @@ def run_colmap(image_source: str, mask_source: str, output_path: str):
 
 def main():
 	parser = argparse.ArgumentParser(prog="python pre_vci.py")
-	parser.add_argument("--image_source", "-s", type=str)
-	parser.add_argument("--mask_source", "-m", type=str)
-	parser.add_argument("--calibration_file", "-c", type=str)
-	parser.add_argument("--output", "-o", type=str)
+	parser.add_argument("--workspace", "-w", type=str, required=True)
+	parser.add_argument("--scenes", "-s", nargs="+", type=str, required=True)
 	args = parser.parse_args()
 
-	extract_poses(args.calibration_file, args.output)
-	run_colmap(args.image_source, args.mask_source, args.output)
+	# assert necessary directories exist
+	assert os.path.exists(args.workspace)
+
+	for scene in args.scenes:
+		assert os.path.exists(os.path.join(args.workspace, scene, "images"))
+
+	calibration_path = os.path.join(args.workspace, "poses.json")
+	assert os.path.exists(calibration_path)
+
+	# look for masks
+	mask_path = os.path.join(args.workspace, "masks")
+	if not os.path.exists(mask_path):
+		mask_path = None
+
+	# reconstruct each scene separately
+	for scene in args.scenes:
+		scene_path = os.path.join(args.workspace, scene)
+		input_path = os.path.join(scene_path, "images")
+		output_path = os.path.join(scene_path, "colmap")
+
+		if os.path.exists(output_path):
+			print(f"Removing old reconstruction for '{scene}'")
+			shutil.rmtree(output_path)
+		
+		print(f"Starting reconstruction for '{scene}'...")
+		print()
+
+		extract_poses(calibration_path, output_path)
+		run_colmap(input_path, mask_path, output_path)
 
 if __name__ == "__main__":
 	main()

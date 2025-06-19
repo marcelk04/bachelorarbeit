@@ -1,13 +1,15 @@
 # NeRF and 3DGS based reconstruction of direct-global separated multiview image data
 
-Environment for Mitsuba and COLMAP:
+## Installing the dependencies
+
+Create the environment and install all necessary packages using:
 
 ```bash
 conda env create -f environment.yml
 ```
 
-Environment for Gaussian Splatting:
+You can then activate the environment with:
 
 ```bash
-conda env create -f submodules/gaussian-splatting/environment.yml
+conda activate ba
 ```
