@@ -14,6 +14,7 @@ dependencies:
   - numpy
   - matplotlib
   - notebook
+  - ipywidgets
   - scikit-image
   - tqdm
   - colmap=3.11.1

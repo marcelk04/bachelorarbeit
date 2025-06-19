@@ -3,6 +3,7 @@ import os
 import shutil
 import json
 import numpy as np
+import skimage as ski
 from tqdm import tqdm
 
 # dont question this ... :/
@@ -14,6 +15,25 @@ sys.path.append(str(path_root))
 from database import *
 from helpers.math_helpers import *
 from helpers.sys_helpers import *
+from helpers.polarization_helpers import *
+
+def separate_lighting(scenes: list[str], output: str) -> None:
+	indirect_path = os.path.join(output, "indirect", "images")
+	direct_path = os.path.join(output, "direct", "images")
+
+	create_dir(indirect_path)
+	create_dir(direct_path)
+
+	images = sorted(os.listdir(os.path.join(scenes[0], "images")))
+
+	for img in tqdm(images, desc="Separating lighting", total=len(images)):
+		img_0 = (ski.io.imread(os.path.join(scenes[0], "images", img)) / 255.0) ** 2.2
+		img_90 = (ski.io.imread(os.path.join(scenes[1], "images", img)) / 255.0) ** 2.2
+
+		indirect, direct = separate(img_0, img_90)
+
+		ski.io.imsave(os.path.join(indirect_path, img), to_ski_image(indirect), check_contrast=False)
+		ski.io.imsave(os.path.join(direct_path, img), to_ski_image(direct), check_contrast=False)
 
 def extract_poses(calibration_file: str, output_path: str) -> None:
 	# Set camera model
@@ -114,13 +134,15 @@ def run_colmap(image_source: str, mask_source: str, output_path: str):
 
 	feature_extract = f"colmap feature_extractor \
 		--database_path {db_path} \
-		--image_path {image_source}" # --SiftExtraction.estimate_affine_shape=true  --SiftExtraction.domain_size_pooling=true 
+		--image_path {image_source} \
+		--SiftExtraction.estimate_affine_shape=true  --SiftExtraction.domain_size_pooling=true " # --SiftExtraction.estimate_affine_shape=true  --SiftExtraction.domain_size_pooling=true 
 	if type(mask_source) != type(None):
 		feature_extract += f" --ImageReader.mask_path {mask_source}"
 	exec_cmd(feature_extract)
 
 	feature_matcher = f"colmap exhaustive_matcher \
-		--database_path {db_path}" # --SiftMatching.guided_matching=true
+		--database_path {db_path} \
+		--SiftMatching.guided_matching=true" # --SiftMatching.guided_matching=true
 	exec_cmd(feature_matcher)
 
 	tri_and_map = f"colmap point_triangulator \
@@ -156,18 +178,32 @@ def run_colmap(image_source: str, mask_source: str, output_path: str):
 		shutil.move(source_file, destination_file)
 
 
+def reconstruct(scene_path: str, calibration_path: str, mask_path: str) -> None:
+	input_path = os.path.join(scene_path, "images")
+	output_path = os.path.join(scene_path, "colmap")
+
+	if os.path.exists(output_path):
+		print(f"Removing old reconstruction for {scene_path}")
+		shutil.rmtree(output_path)
+
+	print(f"Starting reconstruction for {scene_path}...")
+	print()
+
+	extract_poses(calibration_path, output_path)
+	run_colmap(input_path, mask_path, output_path)
+
+
 def main():
 	parser = argparse.ArgumentParser(prog="python pre_vci.py")
 	parser.add_argument("--workspace", "-w", type=str, required=True)
-	parser.add_argument("--scenes", "-s", nargs="+", type=str, required=True)
+	parser.add_argument("--skip_polarized", action="store_true")
+	parser.add_argument("--skip_unpolarized", action="store_true")
 	args = parser.parse_args()
 
-	# assert necessary directories exist
+	# assert workspace exists
 	assert os.path.exists(args.workspace)
 
-	for scene in args.scenes:
-		assert os.path.exists(os.path.join(args.workspace, scene, "images"))
-
+	# assert calibration file exists
 	calibration_path = os.path.join(args.workspace, "poses.json")
 	assert os.path.exists(calibration_path)
 
@@ -176,21 +212,37 @@ def main():
 	if not os.path.exists(mask_path):
 		mask_path = None
 
-	# reconstruct each scene separately
-	for scene in args.scenes:
-		scene_path = os.path.join(args.workspace, scene)
-		input_path = os.path.join(scene_path, "images")
-		output_path = os.path.join(scene_path, "colmap")
+	# look for unpolarized scene
+	unpolarized_scene = os.path.join(args.workspace, "unpolarized")
+	if args.skip_unpolarized:
+		unpolarized_scene = None
+	elif not os.path.exists(unpolarized_scene):
+		print("Unpolarized scene not found. Skipping this one.")
+		unpolarized_scene = None
 
-		if os.path.exists(output_path):
-			print(f"Removing old reconstruction for '{scene}'")
-			shutil.rmtree(output_path)
-		
-		print(f"Starting reconstruction for '{scene}'...")
-		print()
+	# look for polarized scenes
+	polarized_scenes = sorted([os.path.join(args.workspace, elem) for elem in os.listdir(args.workspace) if elem.startswith("polarized_")])
+	if args.skip_polarized:
+		polarized_scenes = None
+	elif len(polarized_scenes) < 2:
+		print("Not enough polarized scenes found. Skipping this one.")
+		polarized_scenes = None
+	else:
+		print(f"Found polarized scenes: {polarized_scenes}")
 
-		extract_poses(calibration_path, output_path)
-		run_colmap(input_path, mask_path, output_path)
+	# reconstruct unpolarized scene
+	if type(unpolarized_scene) != type(None):
+		reconstruct(unpolarized_scene, calibration_path, mask_path)
+
+	# separate polarized lighting and reconstruct scenes
+	if type(polarized_scenes) != type(None):
+		separate_lighting(polarized_scenes, args.workspace)
+
+		indirect_path = os.path.join(args.workspace, "indirect")
+		reconstruct(indirect_path, calibration_path, mask_path)
+
+		direct_path = os.path.join(args.workspace, "direct")
+		reconstruct(direct_path, calibration_path, mask_path)
 
 if __name__ == "__main__":
 	main()
