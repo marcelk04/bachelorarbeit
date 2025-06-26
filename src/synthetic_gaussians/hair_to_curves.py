@@ -57,6 +57,8 @@ def convert(input: str, output: str):
 			color_bytes = f.read(3 * 4 * header.num_points)
 			color = struct.unpack("<"+"f"*3*header.num_points, color_bytes)
 
+		print(f"Default color: {header.default_color}")
+
 	lines = []
 
 	point_idx = 0
@@ -73,7 +75,9 @@ def convert(input: str, output: str):
 			else:
 				point_thickness = header.default_thickness
 
-			line = " ".join([str(points[3 * point + i]) for i in range(3)]) + " " + str(point_thickness) + "\n"
+			radius = point_thickness * 0.5 * 0.42
+
+			line = " ".join([str(points[3 * point + i]) for i in range(3)]) + " " + str(radius) + "\n"
 
 			lines.append(line)
 

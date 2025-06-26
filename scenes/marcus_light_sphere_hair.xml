@@ -7,14 +7,14 @@
 	<default name="polarizing" value="true"/>
 
 	<!-- Integrator -->
-	<integrator type="path" id="integrator">
+	<integrator type="volpath" id="integrator">
 		<integer name="max_depth" value="-1"/>
 	</integrator>
 
 	<!-- Sensor -->
 	<sensor type="perspective" id="sensor">
 		<transform name="to_world">
-			<lookat target="0, 0, 0" origin="0, 0, 4" up="0, 1, 0"/>
+			<lookat target="0, 0, 0" origin="0, 0, 75" up="0, 1, 0"/>
 		</transform>
 
 		<sampler type="independent">
@@ -30,10 +30,34 @@
 	<!-- Head Object -->
 	<include filename="scenes/centered_head_marcus.xml"/>
 
+	<!-- Hair Object -->
+	<shape type="bsplinecurve" id="hair">
+		<string name="filename" value="hair_models/straight.txt"/>
+
+		<transform name="to_world">
+			<scale value="0.42"/>
+			<rotate x="1" angle="270"/>
+			<rotate y="1" angle="180"/>
+			<translate x="-1.0" y="-5.8" z="-2.2"/>
+		</transform>
+
+		<bsdf type="dielectric">
+			<string name="int_ior" value="amber"/>
+			<string name="ext_ior" value="air"/>
+		</bsdf>
+
+		<medium type="homogeneous" name="interior">
+			<!-- <float name="scale" value="4"/>
+			<rgb name="sigma_t" value="1, 1, 0.5"/> -->
+			<rgb name="albedo" value="1.0, 0.9254902601242065, 0.5686274766921997"/>
+			<boolean name="sample_emitters" value="false"/>
+		</medium>
+	</shape>
+
 	<!-- Light Sphere -->
 	<shape type="sphere" id="light">
 		<transform name="to_world">
-			<scale value="10"/>
+			<scale value="200"/>
 			<rotate x="1" angle="90"/>
 		</transform>
 		<boolean name="flip_normals" value="true"/>
@@ -48,7 +72,7 @@
 	<!-- Polarizers -->
 	<shape type="sphere" id="polarizer_light">
 		<transform name="to_world">
-			<scale value="9"/>
+			<scale value="190"/>
 			<rotate x="1" angle="90"/>
 		</transform>
 
@@ -61,7 +85,7 @@
 	<shape type="rectangle" id="polarizer_cam">
 		<transform name="to_world">
 			<rotate z="1" angle="90"/>
-			<lookat target="0, 0, 0" origin="0, 0, 3.5" up="0, 1, 0"/>
+			<lookat target="0, 0, 0" origin="0, 0, 70" up="0, 1, 0"/>
 		</transform>
 
 		<bsdf type="polarizer">

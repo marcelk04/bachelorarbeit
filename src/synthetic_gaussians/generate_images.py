@@ -75,7 +75,7 @@ def render_unpolarized_images(scene, output_path, radius, thetas, phis, masks):
 	params["polarizer_cam.to_world"] = mi.Transform4f().translate([100, 100, 100])
 	params.update()
 
-	images = render_from_angles(scene, radius, thetas, phis, polarized=False)
+	images = render_from_angles(scene, radius, thetas, phis, polarized=False, spp=512)
 	
 	# Undo changes to scenes
 	params["polarizer_cam.to_world"] = polarizer_cam_transform
@@ -91,7 +91,7 @@ def render_polarized_images(scene, output_path, radius, thetas, phis, masks):
 	os.makedirs(os.path.join(output_path, "polarized_0", "images"), exist_ok=True)
 	os.makedirs(os.path.join(output_path, "polarized_90", "images"), exist_ok=True)
 
-	images = render_from_angles(scene, radius, thetas, phis, polarized=True)
+	images = render_from_angles(scene, radius, thetas, phis, polarized=True, spp=1024)
 
 	for i, res in tqdm(enumerate(images), desc="Saving", total=len(images)):
 		img_0, img_90 = res
@@ -171,19 +171,19 @@ def main():
 	thetas = thetas.flatten()
 	phis = phis.flatten()
 
-	radius = 4
+	radius = 75
 
 	print("Loading scenes...")
 	mi.set_variant("cuda_ad_spectral_polarized")
-	polarized_scene = mi.load_file(args.scene)
-	unpolarized_scene = mi.load_file(args.scene, polarizing=False)
+	polarized_scene = mi.load_file(args.scene, res=512)
+	unpolarized_scene = mi.load_file(args.scene, res=512, polarizing=False)
 	print("Done.")
 	print()
 
 	masks = render_masks(polarized_scene, args.output, radius, thetas, phis)
 
 	render_unpolarized_images(unpolarized_scene, args.output, radius, thetas, phis, masks)
-	# render_polarized_images(polarized_scene, args.output, radius, thetas, phis, masks)
+	render_polarized_images(polarized_scene, args.output, radius, thetas, phis, masks)
 
 	output_camera_calibration(polarized_scene, args.output, radius, thetas, phis)
 
