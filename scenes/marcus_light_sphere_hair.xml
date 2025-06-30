@@ -34,6 +34,7 @@
 	<shape type="bsplinecurve" id="hair">
 		<string name="filename" value="hair_models/straight.txt"/>
 
+		<!-- Transform for Straight Hair -->
 		<transform name="to_world">
 			<scale value="0.42"/>
 			<rotate x="1" angle="270"/>
@@ -41,15 +42,24 @@
 			<translate x="-1.0" y="-5.8" z="-2.2"/>
 		</transform>
 
+		<!-- Transform for wWavy Hair -->
+		<!-- <transform name="to_world">
+			<scale value="0.5"/>
+			<rotate x="1" angle="270"/>
+			<rotate y="1" angle="270"/>
+		</transform> -->
+
 		<bsdf type="dielectric">
 			<string name="int_ior" value="amber"/>
 			<string name="ext_ior" value="air"/>
 		</bsdf>
 
 		<medium type="homogeneous" name="interior">
-			<!-- <float name="scale" value="4"/>
-			<rgb name="sigma_t" value="1, 1, 0.5"/> -->
-			<rgb name="albedo" value="1.0, 0.9254902601242065, 0.5686274766921997"/>
+			<rgb name="albedo" value="0.8"/>
+			<rgb name="sigma_t" value="0, 0.00087646, 0.0458497"/>
+			
+			<float name="scale" value="1"/>
+
 			<boolean name="sample_emitters" value="false"/>
 		</medium>
 	</shape>

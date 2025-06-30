@@ -4,12 +4,12 @@ SCENE_PATH="scenes/marcus_light_sphere_hair.xml"
 OUTPUT_PATH="output/hair_3"
 
 SCENE_LIST=(
-	unpolarized
+	# unpolarized
 	indirect
 	direct
 )
 
-python src/synthetic_gaussians/generate_images.py -s $SCENE_PATH -o $OUTPUT_PATH
+# python src/synthetic_gaussians/generate_images.py -s $SCENE_PATH -o $OUTPUT_PATH
 python src/synthetic_gaussians/pre_3dgs.py -w $OUTPUT_PATH
 
 for SCENE in "${SCENE_LIST[@]}"; do
