@@ -31,37 +31,67 @@
 	<include filename="scenes/centered_head_marcus.xml"/>
 
 	<!-- Hair Object -->
+	<bsdf type="dielectric" id="hair_bsdf">
+		<string name="int_ior" value="amber"/>
+		<string name="ext_ior" value="air"/>
+	</bsdf>
+
+	<medium type="homogeneous" id="hair_medium">
+		<rgb name="albedo" value="0.8"/>
+		<rgb name="sigma_t" value="0.07495831115421275, 0.1019386780212289, 0.15640517144391655"/>
+		<!-- <rgb name="sigma_t" value="0, 0.00087646, 0.0458497"/> -->
+		
+		<float name="scale" value="1"/>
+
+		<boolean name="sample_emitters" value="false"/>
+	</medium>
+
 	<shape type="bsplinecurve" id="hair">
-		<string name="filename" value="hair_models/straight.txt"/>
+		<string name="filename" value="hair_models/wWavy.txt"/>
 
 		<!-- Transform for Straight Hair -->
-		<transform name="to_world">
+		<!-- <transform name="to_world">
 			<scale value="0.42"/>
 			<rotate x="1" angle="270"/>
 			<rotate y="1" angle="180"/>
 			<translate x="-1.0" y="-5.8" z="-2.2"/>
-		</transform>
-
-		<!-- Transform for wWavy Hair -->
-		<!-- <transform name="to_world">
-			<scale value="0.5"/>
-			<rotate x="1" angle="270"/>
-			<rotate y="1" angle="270"/>
 		</transform> -->
 
-		<bsdf type="dielectric">
-			<string name="int_ior" value="amber"/>
-			<string name="ext_ior" value="air"/>
-		</bsdf>
+		<!-- Transform for wWavy Hair -->
+		<transform name="to_world">
+			<scale value="0.315"/>
+			<rotate x="1" angle="270"/>
+			<rotate y="1" angle="270"/>
+			<translate x="-0.5" y="1.0" z="0.5"/>
+		</transform>
 
-		<medium type="homogeneous" name="interior">
-			<rgb name="albedo" value="0.8"/>
-			<rgb name="sigma_t" value="0, 0.00087646, 0.0458497"/>
-			
-			<float name="scale" value="1"/>
+		<!-- <bsdf type="hair"/> -->
+		<ref id="hair_bsdf"/>
+		<ref id="hair_medium" name="interior"/>
+	</shape>
 
-			<boolean name="sample_emitters" value="false"/>
-		</medium>
+	<shape type="bsplinecurve" id="hair2">
+		<string name="filename" value="hair_models/wWavy.txt"/>
+
+		<!-- Transform for Straight Hair -->
+		<!-- <transform name="to_world">
+			<scale value="0.42"/>
+			<rotate x="1" angle="270"/>
+			<rotate y="1" angle="180"/>
+			<translate x="-1.0" y="-5.8" z="-2.2"/>
+		</transform> -->
+
+		<!-- Transform for wWavy Hair -->
+		<transform name="to_world">
+			<scale value="0.315"/>
+			<rotate x="1" angle="270"/>
+			<rotate y="1" angle="270"/>
+			<translate x="-0.5" y="1.0" z="0.4"/>
+		</transform>
+
+		<!-- <bsdf type="hair"/> -->
+		<ref id="hair_bsdf"/>
+		<ref id="hair_medium" name="interior"/>
 	</shape>
 
 	<!-- Light Sphere -->

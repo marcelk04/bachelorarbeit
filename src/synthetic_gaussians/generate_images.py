@@ -1,4 +1,5 @@
 import mitsuba as mi
+import drjit as dr
 import skimage as ski
 import numpy as np
 import argparse
@@ -174,6 +175,7 @@ def main():
 	radius = 75
 
 	print("Loading scenes...")
+	dr.set_flag(dr.JitFlag.Debug, True)
 	mi.set_variant("cuda_ad_spectral_polarized")
 	polarized_scene = mi.load_file(args.scene, res=512)
 	unpolarized_scene = mi.load_file(args.scene, res=512, polarizing=False)

@@ -145,7 +145,7 @@ def run_colmap(image_source: str, mask_source: str, output_path: str):
 	feature_matcher = f"colmap exhaustive_matcher \
 		--database_path {db_path} \
 		--SiftMatching.guided_matching=true \
-		--SiftMatching.max_ratio=0.85" # --SiftMatching.guided_matching=true
+		--SiftMatching.max_ratio=0.9" # --SiftMatching.guided_matching=true
 	exec_cmd(feature_matcher)
 
 	tri_and_map = f"colmap point_triangulator \

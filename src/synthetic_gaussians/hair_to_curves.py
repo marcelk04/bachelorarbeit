@@ -3,6 +3,15 @@ import os
 import struct
 import numpy as np
 
+def color_to_absorption(color, beta=0.3):
+	return (np.log(color) / (5.969 - 0.215 * beta + 2.532 * beta ** 2 - 10.73 * beta ** 3 + 5.574 * beta ** 4 + 0.245 * beta ** 5 )) ** 2
+
+def absorption_to_extinction(absorption, albedo):
+	return absorption / (1 - albedo + 1e-6)
+
+def calculate_extinction(color, scattering_albedo, beta=0.3):
+	return absorption_to_extinction(color_to_absorption(color, beta), scattering_albedo)
+
 def read_uint(bytes):
 	return int.from_bytes(bytes, byteorder="little", signed=False)
 
@@ -34,7 +43,7 @@ class Header:
 		self.default_transparency = read_float(header_bytes[24:28])
 		self.default_color       = [read_float(header_bytes[28:32]), read_float(header_bytes[32:36]), read_float(header_bytes[36:40])]
 
-def convert(input: str, output: str, volume: str):
+def convert(input: str, output: str):
 	with open(input, "rb") as f:
 		header = Header(f.read(128)) # Header consists of first 128 bytes
 
@@ -68,9 +77,16 @@ def convert(input: str, output: str, volume: str):
 
 		print(f"Default color: {header.default_color}")
 
+		albedo = 0.8
+		extinction = calculate_extinction(np.array(header.default_color), albedo)
+		print(f"Albedo: {albedo}")
+		print(f"Extinction: {', '.join([str(i) for i in extinction])}")
+
+	files = []
 	lines = []
 
 	point_idx = 0
+	next_write = 2000000
 
 	for strand in range(header.num_strands):
 		if header.has_segments_arr:
@@ -87,74 +103,40 @@ def convert(input: str, output: str, volume: str):
 			# radius = point_thickness * 0.5 * 0.42
 			radius = 0.004
 
-			line = " ".join([str(points[3 * point + i]) for i in range(3)]) + " " + str(radius) + "\n"
+			line = " ".join([str(round(points[3 * point + i], 6)) for i in range(3)]) + " " + str(radius) + "\n"
 
 			lines.append(line)
 
 		point_idx += num_control_points
 		lines.append("\n")
 
+	# 	if point_idx > next_write:
+	# 		file = os.path.splitext(output)[0] + str(len(files)) + ".txt"
+	# 		files.append(file)
+	# 		with open(file, "w") as f:
+	# 			f.writelines(lines)
+	# 		lines = []
+	# 		next_write += 2000000
+
+	# file = os.path.splitext(output)[0] + str(len(files)) + ".txt"
+	# files.append(file)
+	# with open(file, "w") as f:
+	# 	f.writelines(lines)
+
+	# print(f"Wrote to files: {files}")
+
 	with open(output, "w") as f:
 		f.writelines(lines)
-
-	if type(volume) != type(None) and header.has_color_arr:
-		print("Creating color volume")
-
-		# Find bounding box
-		points = np.array(points).reshape(-1, 3)
-		points_min = points.min(axis=0)
-		points_max = points.max(axis=0)
-
-		x_res = int(points_max[0] - points_min[0]) + 1
-		y_res = int(points_max[1] - points_min[1]) + 1
-		z_res = int(points_max[2] - points_min[2]) + 1
-
-		num_channels = 3
-
-		data = np.zeros((z_res, y_res, x_res, num_channels), dtype=np.float32)
-		data[:, :, :, :] = np.array(header.default_color)[None, None, None, :]
-
-		for i in range(header.num_points):
-			x = int(points[i, 0] - points_min[0])
-			y = int(points[i, 1] - points_min[1])
-			z = int(points[i, 2] - points_min[2])
-
-			val = np.array([color[3 * i + j] for j in range(3)])
-
-			data[z, y, x, :] = val
-
-		out = bytearray()
-		out.extend(map(ord, "VOL"))
-		out.append(3)
-		out.extend(int.to_bytes(1, length=4, byteorder="little", signed=True))
-		out.extend(int.to_bytes(x_res, length=4, byteorder="little", signed=True))
-		out.extend(int.to_bytes(y_res, length=4, byteorder="little", signed=True))
-		out.extend(int.to_bytes(z_res, length=4, byteorder="little", signed=True))
-		out.extend(int.to_bytes(num_channels, length=4, byteorder="little", signed=True))
-		out.extend(struct.pack("f", points_min[0]))
-		out.extend(struct.pack("f", points_min[1]))
-		out.extend(struct.pack("f", points_min[2]))
-		out.extend(struct.pack("f", points_max[0]))
-		out.extend(struct.pack("f", points_max[1]))
-		out.extend(struct.pack("f", points_max[2]))
-
-		out_data = data.flatten()
-		out.extend(struct.pack("f"*len(out_data), *out_data))
-
-		with open(volume, "wb") as f:
-			f.write(bytes(out))
-
 
 def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--source", "-s", type=str, required=True)
 	parser.add_argument("--output", "-o", type=str, required=True)
-	parser.add_argument("--volume", "-v", type=str, required=False)
 	args = parser.parse_args()
 
 	assert os.path.exists(args.source)
 
-	convert(args.source, args.output, args.volume)
+	convert(args.source, args.output)
 
 if __name__ == "__main__":
 	main()
