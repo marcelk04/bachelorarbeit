@@ -76,7 +76,7 @@ def render_unpolarized_images(scene, output_path, radius, thetas, phis, masks):
 	params["polarizer_cam.to_world"] = mi.Transform4f().translate([100, 100, 100])
 	params.update()
 
-	images = render_from_angles(scene, radius, thetas, phis, polarized=False, spp=512)
+	images = render_from_angles(scene, radius, thetas, phis, polarized=False, spp=1024)
 	
 	# Undo changes to scenes
 	params["polarizer_cam.to_world"] = polarizer_cam_transform

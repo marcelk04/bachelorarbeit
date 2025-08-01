@@ -1,16 +1,16 @@
-export CUDA_VISIBLE_DEVICES=5
+export CUDA_VISIBLE_DEVICES=6
 
 SCENE_PATH="scenes/marcus_light_sphere_hair.xml"
-OUTPUT_PATH="output/hair_4"
+OUTPUT_PATH="output/hair_5"
 
 SCENE_LIST=(
-	# unpolarized
+	unpolarized
 	indirect
 	direct
 )
 
-# python src/synthetic_gaussians/generate_images.py -s $SCENE_PATH -o $OUTPUT_PATH
-python src/synthetic_gaussians/pre_3dgs.py -w $OUTPUT_PATH --skip_unpolarized
+python src/synthetic_gaussians/generate_images.py -s $SCENE_PATH -o $OUTPUT_PATH
+python src/synthetic_gaussians/pre_3dgs.py -w $OUTPUT_PATH
 
 for SCENE in "${SCENE_LIST[@]}"; do
 	echo "gaussian reconstruction for: $SCENE"
