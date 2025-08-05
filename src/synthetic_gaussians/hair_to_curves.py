@@ -59,7 +59,7 @@ def get_strand(strand_idx: int, header: Header, points, segments, start_indices,
 def strand_to_string(strand: list[tuple[int, int, int]], radius=0.004):
 	return "".join([" ".join([str(i) for i in point]) + " " + str(radius) + "\n" for point in strand]) + "\n"
 
-def convert(input: str, output: str):
+def convert(input: str, output: str, target_strands: int):
 	with open(input, "rb") as f:
 		header = Header(f.read(128)) # Header consists of first 128 bytes
 
@@ -123,10 +123,8 @@ def convert(input: str, output: str):
 
 		point_idx += len(strand)
 
-	target_num_strands = 75_000
-
 	print("Densifiying:")
-	for i in tqdm(range(max(target_num_strands - header.num_strands, 0)), total=max(target_num_strands - header.num_strands, 0)):
+	for i in tqdm(range(max(target_strands - header.num_strands, 0)), total=max(target_strands - header.num_strands, 0)):
 		strand_idx = random.randint(0, header.num_strands-1)
 		offset = (rand_float(-0.1, 0.1), rand_float(-0.1, 0.1), rand_float(-0.1, 0.1))
 		strand = get_strand(strand_idx, header, points, segments, start_indices, offset)
@@ -141,6 +139,7 @@ def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--input", "-i", type=str, required=True)
 	parser.add_argument("--output", "-o", default="", type=str, required=False)
+	parser.add_argument("--target_strands", default=75_000, type=int, required=False)
 	args = parser.parse_args()
 
 	assert os.path.exists(args.input)
@@ -152,7 +151,7 @@ def main():
 		name_wo_extension = os.path.splitext(in_path)[0]
 		out_path = name_wo_extension + ".txt"
 
-	convert(in_path, out_path)
+	convert(in_path, out_path, args.target_strands)
 
 if __name__ == "__main__":
 	main()

@@ -19,7 +19,7 @@ def main():
 	indirect_stream = cv2.VideoCapture(args.indirect)
 	direct_stream = cv2.VideoCapture(args.direct)
 
-	out = cv2.VideoWriter(args.output, cv2.VideoWriter_fourcc(*'mp4v'), 30, (512, 512))
+	out = cv2.VideoWriter(args.output, cv2.VideoWriter_fourcc(*'mp4v'), 30, (1024, 1024))
 
 	# _, frame = indirect_stream.read()
 

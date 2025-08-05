@@ -1,7 +1,7 @@
-export CUDA_VISIBLE_DEVICES=6
+export CUDA_VISIBLE_DEVICES=5
 
 SCENE_PATH="scenes/marcus_light_sphere_hair.xml"
-OUTPUT_PATH="output/hair_5"
+OUTPUT_PATH="output/hair_8"
 
 SCENE_LIST=(
 	unpolarized

@@ -30,38 +30,53 @@
 	<!-- Head Object -->
 	<include filename="scenes/centered_head_marcus.xml"/>
 
-	<!-- Hair Object -->
+	<!-- Hair Materials -->
 	<!-- <bsdf type="dielectric" id="hair_bsdf">
 		<string name="int_ior" value="amber"/>
 		<string name="ext_ior" value="air"/>
+		<rgb name="specular_reflectance" value="0.0"/>
+		<rgb name="specular_transmittance" value="0.65, 0.35, 0.15"/>
 	</bsdf> -->
-	<bsdf type="pplastic" id="hair_bsdf">
+	<!-- <bsdf type="pplastic" id="hair_bsdf">
 		<rgb name="diffuse_reflectance" value="0.65, 0.35, 0.15"/>
 		<string name="int_ior" value="amber"/>
 		<string name="ext_ior" value="air"/>
 		<float name="alpha" value="0.3"/>
-	</bsdf>
+	</bsdf> -->
 	<!-- <bsdf type="hair" id="hair_bsdf">
 		<float name="eumelanin" value="0.11"/>
 		<float name="pheomelanin" value="0.71"/>
 	</bsdf> -->
 
+	<bsdf type="blendbsdf" id="hair_bsdf">
+		<float name="weight" value="0.5"/>
+
+		<bsdf type="pplastic">
+			<!-- <rgb name="diffuse_reflectance" value="0.65, 0.35, 0.15"/> -->
+			<rgb name="diffuse_reflectance" value="0.143016, 0.0156076, 1.80928e-005"/>
+			<string name="int_ior" value="amber"/>
+			<string name="ext_ior" value="air"/>
+			<float name="alpha" value="0.3"/>
+			<string name="distribution" value="ggx"/>
+		</bsdf>
+
+		<bsdf type="dielectric">
+			<string name="int_ior" value="amber"/>
+			<string name="ext_ior" value="air"/>
+			<rgb name="specular_reflectance" value="0.2"/>
+		</bsdf>
+	</bsdf>
+
 	<medium type="homogeneous" id="hair_medium">
 		<rgb name="albedo" value="0.9, 0.85, 0.8"/>
 		<rgb name="sigma_t" value="0.1, 0.2, 0.5"/>
-		<!-- <rgb name="albedo" value="0.8"/>
-		<spectrum type="irregular" name="sigma_t">
-			<string name="wavelengths" value="250, 350, 450, 550, 650, 750"/>
-			<string name="values" value="0.00483858 0.00281465 0.00144608 0.00070072 0.00035863 0.00019906"/>
-		</spectrum> -->
-		<!-- <rgb name="sigma_t" value="0.07495831115421275, 0.1019386780212289, 0.15640517144391655"/> -->
-		<!-- <rgb name="sigma_t" value="0, 0.00087646, 0.0458497"/> -->
 		
 		<float name="scale" value="1"/>
 
 		<boolean name="sample_emitters" value="false"/>
 	</medium>
 
+	<!-- Hair Object -->
 	<shape type="bsplinecurve" id="hair">
 		<string name="filename" value="hair_models/wWavy.txt"/>
 
@@ -78,11 +93,10 @@
 			<scale value="0.315"/>
 			<rotate x="1" angle="270"/>
 			<rotate y="1" angle="270"/>
-			<translate x="-0.5" y="1.0" z="0.5"/>
+			<translate x="-0.8" y="0.5" z="0.5"/>
 		</transform>
 
 		<ref id="hair_bsdf"/>
-		<!-- <ref id="hair_medium" name="interior"/> -->
 	</shape>
 
 	<!-- Light Sphere -->
