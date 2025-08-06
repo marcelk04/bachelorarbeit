@@ -2,12 +2,7 @@ import numpy as np
 import mitsuba as mi
 from tqdm import tqdm
 
-def spherical_to_cartesian(radius, theta, phi):
-	x = radius * np.sin(theta) * np.sin(phi)
-	y = radius * np.cos(theta)
-	z = radius * np.sin(theta) * np.cos(phi)
-
-	return np.array([x, y, z])
+from helpers.math_helpers import *
 
 def render_np(scene, spp, integrator=None):
 	if type(integrator) == type(None):

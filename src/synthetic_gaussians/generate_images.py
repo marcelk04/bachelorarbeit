@@ -148,12 +148,14 @@ def main():
 	if not os.path.exists(args.output):
 		os.makedirs(args.output)
 
-	thetas_0 = np.array([0.35*np.pi, 0.5*np.pi, 0.65*np.pi])
-	phis_0 = np.linspace(0, 2*np.pi, 16, endpoint=False)
+	# thetas_0 = np.array([0.35*np.pi, 0.5*np.pi, 0.65*np.pi])
+	# phis_0 = np.linspace(0, 2*np.pi, 16, endpoint=False)
 
-	thetas, phis = np.meshgrid(thetas_0, phis_0)
-	thetas = thetas.flatten()
-	phis = phis.flatten()
+	# thetas, phis = np.meshgrid(thetas_0, phis_0)
+	# thetas = thetas.flatten()
+	# phis = phis.flatten()
+
+	thetas, phis = golden_spiral(64)
 
 	radius = 75
 
