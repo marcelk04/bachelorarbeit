@@ -1,6 +1,8 @@
 import argparse
 import numpy as np
 import cv2
+import os
+from tqdm import tqdm
 
 from pathlib import Path
 import sys
@@ -16,18 +18,27 @@ def main():
 	parser.add_argument("--output", "-o", type=str, required=True)
 	args = parser.parse_args()
 
+	assert os.path.exists(args.indirect)
+	assert os.path.exists(args.direct)
+
 	indirect_stream = cv2.VideoCapture(args.indirect)
 	direct_stream = cv2.VideoCapture(args.direct)
 
-	out = cv2.VideoWriter(args.output, cv2.VideoWriter_fourcc(*'mp4v'), 30, (1024, 1024))
+	width = int(indirect_stream.get(cv2.CAP_PROP_FRAME_WIDTH))
+	height = int(indirect_stream.get(cv2.CAP_PROP_FRAME_HEIGHT))
+	fps = indirect_stream.get(cv2.CAP_PROP_FPS)
+	frame_count = int(indirect_stream.get(cv2.CAP_PROP_FRAME_COUNT))
 
-	# _, frame = indirect_stream.read()
+	assert width == int(direct_stream.get(cv2.CAP_PROP_FRAME_WIDTH))
+	assert height == int(direct_stream.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-	# print(frame.dtype)
+	print(f"Width: {width}, Height: {height}")
+	print(f"FPS: {fps}")
+	print(f"Frame count: {frame_count}")
 
-	frame_count = 0
+	out = cv2.VideoWriter(args.output, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
 
-	while True:
+	for i in tqdm(range(frame_count), desc="Writing", total=frame_count):
 		try:
 			_, indirect = indirect_stream.read()
 			_, direct = direct_stream.read()
@@ -43,20 +54,15 @@ def main():
 
 			combined = reconstruct(indirect, direct)
 
-			combined = combined ** (1.0 / 2.2)
-
-			combined = (np.clip(combined, 0, 1) * 255).astype(np.uint8)
-
+			combined = combined ** (1.0 / 2.2) # gamma correction
+			combined = (np.clip(combined, 0, 1) * 255).astype(np.uint8) # continuous range [0, 1] to discrete range [0, 255]
 			combined = cv2.cvtColor(combined, cv2.COLOR_RGB2BGR)
 
 			out.write(combined)
 
-			frame_count += 1
-
 		except:
+			print(f"Encountered an error at frame {i} :(")
 			break
-
-	print(f"frames: {frame_count}")
 
 	indirect_stream.release()
 	direct_stream.release()
