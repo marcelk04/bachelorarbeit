@@ -12,7 +12,7 @@ import sys
 path_root = Path(__file__).parents[1]
 sys.path.append(str(path_root))
 
-from database import *
+from thirdparty.database import *
 from helpers.math_helpers import *
 from helpers.sys_helpers import *
 from helpers.polarization_helpers import *
