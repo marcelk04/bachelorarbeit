@@ -42,6 +42,8 @@ def render_from_angle(scene, radius, theta, phi, polarized=True, spp=512, integr
 	
 def render_from_angles(scene, radius, thetas, phis, polarized=True, spp=512, integrator=None):
 	images = []
+
 	for theta, phi in tqdm(zip(thetas, phis), desc="Rendering", total=len(thetas)):
 		images.append(render_from_angle(scene, radius, theta, phi, polarized, spp, integrator))
-	return np.stack(images) # Dimensions: (N, 1/2, W, H, 3)
+
+	return np.stack(images) # Dimensions: (N, 1, W, H, 3) or (N, 2, W, H, 3)
