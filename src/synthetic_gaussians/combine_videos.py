@@ -10,6 +10,7 @@ path_root = Path(__file__).parents[1]
 sys.path.append(str(path_root))
 
 from helpers.polarization_helpers import *
+from helpers.sys_helpers import *
 
 def main():
 	parser = argparse.ArgumentParser()
@@ -17,6 +18,9 @@ def main():
 	parser.add_argument("--direct", "-d", type=str, required=True)
 	parser.add_argument("--output", "-o", type=str, required=True)
 	args = parser.parse_args()
+
+	# Make sure output directory exists
+	create_dir(os.path.dirname(args.output))
 
 	assert os.path.exists(args.indirect)
 	assert os.path.exists(args.direct)
@@ -36,7 +40,7 @@ def main():
 	print(f"FPS: {fps}")
 	print(f"Frame count: {frame_count}")
 
-	out = cv2.VideoWriter(args.output, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
+	out = cv2.VideoWriter(args.output, cv2.VideoWriter_fourcc(*'mp4v'), fps, (height, width))
 
 	for i in tqdm(range(frame_count), desc="Writing", total=frame_count):
 		try:
