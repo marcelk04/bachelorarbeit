@@ -9,19 +9,27 @@ SCENE_LIST=(
 	direct
 )
 
-python src/synthetic_gaussians/generate_images.py -s $SCENE_PATH -o $OUTPUT_PATH --res 1024 --spp 128
-python src/synthetic_gaussians/pre_3dgs.py -w $OUTPUT_PATH
+# python src/synthetic_gaussians/generate_images.py -s $SCENE_PATH -o $OUTPUT_PATH --res 1024 --spp 128
+# python src/synthetic_gaussians/pre_3dgs.py -w $OUTPUT_PATH
 
 for SCENE in "${SCENE_LIST[@]}"; do
 	echo "gaussian reconstruction for: $SCENE"
 
 	# Train model
-	python submodules/gaussian-splatting/train.py -s $OUTPUT_PATH/$SCENE/colmap -m $OUTPUT_PATH/$SCENE/model --disable_viewer --eval
+	# python submodules/gaussian-splatting/train.py -s $OUTPUT_PATH/$SCENE/colmap -m $OUTPUT_PATH/$SCENE/model --disable_viewer --eval
 
 	# Render results (test views + 360 video)
 	python submodules/gaussian-splatting/render.py -m $OUTPUT_PATH/$SCENE/model --output $OUTPUT_PATH/results/$SCENE --skip_train
 	python submodules/gaussian-splatting/render360.py -m $OUTPUT_PATH/$SCENE/model --output $OUTPUT_PATH/results/videos/$SCENE.mp4
 done
 
+# Reconstruct results from indirect/direct renders
 python src/synthetic_gaussians/combine_videos.py -i $OUTPUT_PATH/indirect/model/test/ours_30000/video/output.mp4 -d $OUTPUT_PATH/direct/model/test/ours_30000/video/output.mp4 -o $OUTPUT_PATH/results/videos/combined.mp4
-python src/synthetic_gaussians/combine_images.py -i $OUTPUT_PATH/results/indirect -d $OUTPUT_PATH/results/direct -o $OUTPUT_PATH/results/combined
+python src/synthetic_gaussians/combine_images.py -i $OUTPUT_PATH/results/indirect/test/ours_30000 -d $OUTPUT_PATH/results/direct/test/ours_30000 -o $OUTPUT_PATH/results/combined/test/ours_30000
+
+# Evaluate metrics
+python submodules/gaussian-splatting/metrics.py -m $OUTPUT_PATH/results/combined
+
+for SCENE in "${SCENE_LIST[@]}"; do
+	python submodules/gaussian-splatting/metrics.py -m $OUTPUT_PATH/results/$SCENE
+done

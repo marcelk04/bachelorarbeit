@@ -8,9 +8,9 @@
 - ~~combine indirect + direct 360 video~~
 - ~~render test cameras~~
 - ~~combine indirect + direct images~~
-- evaluate metrics
+- ~~evaluate metrics~~
 - (generate nice graphs)
-- move results to separate folder
+- ~~move results to separate folder~~
 
 ## Train polarized models together
 
