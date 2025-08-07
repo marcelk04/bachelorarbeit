@@ -7,7 +7,7 @@
 - ~~render 360 videos~~
 - ~~combine indirect + direct 360 video~~
 - ~~render test cameras~~
-- combine indirect + direct images
+- ~~combine indirect + direct images~~
 - evaluate metrics
 - (generate nice graphs)
 - move results to separate folder

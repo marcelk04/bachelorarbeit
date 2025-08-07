@@ -23,6 +23,12 @@ def exec_cmd(cmd: str) -> None:
 
 	print()
 
+def to_np_image(image):
+	image = image.astype(float) / 255.0 # Convert to float range [0, 1]
+	image = image ** 2.2 # Gamma correction
+
+	return image
+
 def to_ski_image(image):
 	image[image < 0] = 0 # Clip negative values
 

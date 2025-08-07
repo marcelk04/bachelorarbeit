@@ -27,8 +27,8 @@ def separate_lighting(scenes: list[str], output: str) -> None:
 	images = sorted(os.listdir(os.path.join(scenes[0], "images")))
 
 	for img in tqdm(images, desc="Separating lighting", total=len(images)):
-		img_0 = (ski.io.imread(os.path.join(scenes[0], "images", img)) / 255.0) ** 2.2
-		img_90 = (ski.io.imread(os.path.join(scenes[1], "images", img)) / 255.0) ** 2.2
+		img_0 = to_np_image(ski.io.imread(os.path.join(scenes[0], "images", img)))
+		img_90 = to_np_image(ski.io.imread(os.path.join(scenes[1], "images", img)))
 
 		indirect, direct = separate(img_0, img_90)
 

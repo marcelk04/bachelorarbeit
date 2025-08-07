@@ -24,3 +24,4 @@ for SCENE in "${SCENE_LIST[@]}"; do
 done
 
 python src/synthetic_gaussians/combine_videos.py -i $OUTPUT_PATH/indirect/model/test/ours_30000/video/output.mp4 -d $OUTPUT_PATH/direct/model/test/ours_30000/video/output.mp4 -o $OUTPUT_PATH/results/videos/combined.mp4
+python src/synthetic_gaussians/combine_images.py -i $OUTPUT_PATH/results/indirect -d $OUTPUT_PATH/results/direct -o $OUTPUT_PATH/results/combined
