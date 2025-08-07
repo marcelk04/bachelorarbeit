@@ -35,7 +35,7 @@ def separate_lighting(scenes: list[str], output: str) -> None:
 		ski.io.imsave(os.path.join(indirect_path, img), to_ski_image(indirect), check_contrast=False)
 		ski.io.imsave(os.path.join(direct_path, img), to_ski_image(direct), check_contrast=False)
 
-def extract_poses(calibration_file: str, output_path: str) -> None:
+def extract_poses(calibration_file: str, output_path: str):
 	# Set camera model
 	camera_model = 1 # PINHOLE
 
@@ -51,6 +51,8 @@ def extract_poses(calibration_file: str, output_path: str) -> None:
 	create_dir(distorted_path)
 	manual_path = os.path.join(output_path, "manual")
 	create_dir(manual_path)
+	sparse_path = os.path.join(output_path, "sparse", "0")
+	create_dir(sparse_path)
 	db_path = os.path.join(distorted_path, "database.db")
 
 	db = COLMAPDatabase.connect(db_path)
@@ -58,12 +60,17 @@ def extract_poses(calibration_file: str, output_path: str) -> None:
 
 	imagetxt_list = []
 	cameratxt_list = []
+	test_cams = []
 
 	print(f"Start writing to new database at '{db_path}'")
 
 	for i, camera in tqdm(enumerate(calibration["cameras"]), desc="Reading camera calibration", total=len(calibration['cameras'])):
 		camera_name = camera["camera_id"]
 		image_name = camera_name
+
+		# TODO: Test cameras should not be used for reconstruction
+		if camera["is_test_cam"]:
+			test_cams.append(f"{camera_name}\n")
 
 		# Extract pose information from the JSON file
 		view_matrix = np.array(camera["extrinsics"]["view_matrix"], dtype=np.float64).reshape((4, 4)) # View Matrix is given in World-To-Camera Space 
@@ -116,6 +123,7 @@ def extract_poses(calibration_file: str, output_path: str) -> None:
 	write_lines_to_file(imagetxt_list, os.path.join(manual_path, "images.txt"))
 	write_lines_to_file(cameratxt_list, os.path.join(manual_path, "cameras.txt"))
 	write_lines_to_file([], os.path.join(manual_path, "points3D.txt"))
+	write_lines_to_file(test_cams, os.path.join(sparse_path, "test.txt"))
 
 	print("Done writing text output")
 	print()

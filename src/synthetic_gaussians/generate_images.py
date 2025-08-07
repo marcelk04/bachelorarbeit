@@ -89,7 +89,7 @@ def save_images(images, path, extension=".png"):
 
 		ski.io.imsave(output, to_ski_image(image), check_contrast=False)
 
-def output_camera_calibration(scene, output_path, radius, thetas, phis):
+def output_camera_calibration(scene, output_path, radius, thetas, phis, num_train_cams):
 	params = mi.traverse(scene)
 
 	width, height = params["sensor.film.size"]
@@ -123,6 +123,7 @@ def output_camera_calibration(scene, output_path, radius, thetas, phis):
 		cam_obj["camera_id"] = str(i).zfill(4) + ".png"
 		cam_obj["extrinsics"] = extr_obj
 		cam_obj["intrinsics"] = intr_obj
+		cam_obj["is_test_cam"] = (i >= num_train_cams)
 		
 		cameras.append(cam_obj)
 
@@ -141,6 +142,7 @@ def main():
 	parser.add_argument("--output", "-o", type=str, required=True)
 	parser.add_argument("--resolution", "--res", "-r", default=512, type=int, required=False)
 	parser.add_argument("--samples", "--spp", default=512, type=int, required=False)
+	parser.add_argument("--image_count", "-c", default=64, type=int, required=False)
 	args = parser.parse_args()
 
 	assert os.path.exists(args.scene)
@@ -148,16 +150,19 @@ def main():
 	if not os.path.exists(args.output):
 		os.makedirs(args.output)
 
-	# thetas_0 = np.array([0.35*np.pi, 0.5*np.pi, 0.65*np.pi])
-	# phis_0 = np.linspace(0, 2*np.pi, 16, endpoint=False)
-
-	# thetas, phis = np.meshgrid(thetas_0, phis_0)
-	# thetas = thetas.flatten()
-	# phis = phis.flatten()
-
-	thetas, phis = golden_spiral(64)
-
 	radius = 75
+
+	# Train views
+	thetas_train, phis_train = golden_spiral(args.image_count)
+
+	# Test views
+	thetas_0 = np.array([0.35*np.pi, 0.5*np.pi, 0.65*np.pi])
+	phis_0 = np.linspace(0, 2*np.pi, 4, endpoint=False)
+
+	thetas_test, phis_test = np.meshgrid(thetas_0, phis_0)
+
+	thetas = np.concatenate([thetas_train, thetas_test.flatten()])
+	phis = np.concatenate([phis_train, phis_test.flatten()])
 
 	print("Loading scenes...")
 	dr.set_flag(dr.JitFlag.Debug, True)
@@ -185,7 +190,7 @@ def main():
 	print()
 
 	print("Generating camera poses...")
-	output_camera_calibration(polarized_scene, args.output, radius, thetas, phis)
+	output_camera_calibration(polarized_scene, args.output, radius, thetas, phis, args.image_count)
 
 if __name__ == "__main__":
 	main()
