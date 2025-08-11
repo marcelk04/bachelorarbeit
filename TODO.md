@@ -21,3 +21,10 @@
 
 - less input images for polarized model
 - lower model size for polarized model
+
+## Output train results
+
+- ~~log loss values for each iteration~~
+- ~~evaluate perfomance regularly on test cams (PSNR, ...)~~
+
+## Train NeRF model
