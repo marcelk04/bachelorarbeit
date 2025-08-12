@@ -17,6 +17,15 @@
 - test views can be evaluated on combined images
 - comparable to training of unpolarized model
 
+**What we need:**
+
+- ~~read in separate source paths~~
+- ~~create two separate GaussianModels and Scenes~~
+- ~~render independently~~
+- ~~first evaluate loss separately~~
+- ~~then add combined loss to both terms~~
+- profit?
+
 ## Test perfomance
 
 - less input images for polarized model
