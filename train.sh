@@ -4,7 +4,7 @@ SCENE_PATH="scenes/marcus_light_sphere_hair.xml"
 OUTPUT_PATH="output/0807_hair_10"
 
 SCENE_LIST=(
-	# unpolarized
+	unpolarized
 	indirect
 	direct
 )
