@@ -14,8 +14,8 @@
 
 ## Train polarized models together
 
-- test views can be evaluated on combined images
-- comparable to training of unpolarized model
+- ~~test views can be evaluated on combined images~~
+- ~~comparable to training of unpolarized model~~
 
 **What we need:**
 

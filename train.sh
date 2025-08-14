@@ -1,4 +1,4 @@
-export CUDA_VISIBLE_DEVICES=6
+export CUDA_VISIBLE_DEVICES=7
 
 SCENE_PATH="scenes/marcus_light_sphere_hair.xml"
 OUTPUT_PATH="output/0812_train_tandem_2"
