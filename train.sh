@@ -1,4 +1,4 @@
-export CUDA_VISIBLE_DEVICES=7
+export CUDA_VISIBLE_DEVICES=6
 
 SCENE_PATH="scenes/marcus_light_sphere_hair.xml"
 OUTPUT_PATH="output/0812_train_tandem_2"
@@ -9,11 +9,14 @@ SCENE_LIST=(
 	direct
 )
 
+# Render dataset
 # python src/synthetic_gaussians/generate_images.py -s $SCENE_PATH -o $OUTPUT_PATH --res 1024 --spp 128
+
+# Preprocessing (separate lighting, COLMAP)
 # python src/synthetic_gaussians/pre_3dgs.py -w $OUTPUT_PATH
 
 # Train unpolarized model
-# python submodules/gaussian-splatting/train.py -s $OUTPUT_PATH/unpolarized/colmap -m $OUTPUT_PATH/unpolarized/model --disable_viewer --eval
+python submodules/gaussian-splatting/train.py -s $OUTPUT_PATH/unpolarized/colmap -m $OUTPUT_PATH/unpolarized/model --disable_viewer --eval
 
 # Train polarized model
 python submodules/gaussian-splatting/train_tandem.py --source1 $OUTPUT_PATH/indirect/colmap --model1 $OUTPUT_PATH/indirect/model --source2 $OUTPUT_PATH/direct/colmap --model2 $OUTPUT_PATH/direct/model --disable_viewer --eval

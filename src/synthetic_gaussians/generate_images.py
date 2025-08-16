@@ -156,13 +156,16 @@ def main():
 	thetas_train, phis_train = golden_spiral(args.image_count)
 
 	# Test views
-	thetas_0 = np.array([0.35*np.pi, 0.5*np.pi, 0.65*np.pi])
-	phis_0 = np.linspace(0, 2*np.pi, 4, endpoint=False)
+	# thetas_0 = np.array([0.35*np.pi, 0.5*np.pi, 0.65*np.pi])
+	# phis_0 = np.linspace(0, 2*np.pi, 4, endpoint=False)
 
-	thetas_test, phis_test = np.meshgrid(thetas_0, phis_0)
+	# thetas_test, phis_test = np.meshgrid(thetas_0, phis_0)
 
-	thetas = np.concatenate([thetas_train, thetas_test.flatten()])
-	phis = np.concatenate([phis_train, phis_test.flatten()])
+	# thetas = np.concatenate([thetas_train, thetas_test.flatten()])
+	# phis = np.concatenate([phis_train, phis_test.flatten()])
+
+	thetas = thetas_train
+	phis = phis_train
 
 	print("Loading scenes...")
 	dr.set_flag(dr.JitFlag.Debug, True)
@@ -188,6 +191,15 @@ def main():
 	save_images(polarized_images[:, 0, ...], os.path.join(args.output, "polarized_0", "images"))
 	save_images(polarized_images[:, 1, ...], os.path.join(args.output, "polarized_90", "images"))
 	print()
+
+	# Test views
+	thetas_0 = np.array([0.35*np.pi, 0.5*np.pi, 0.65*np.pi])
+	phis_0 = np.linspace(0, 2*np.pi, 4, endpoint=False)
+
+	thetas_test, phis_test = np.meshgrid(thetas_0, phis_0)
+
+	thetas = np.concatenate([thetas_train, thetas_test.flatten()])
+	phis = np.concatenate([phis_train, phis_test.flatten()])
 
 	print("Generating camera poses...")
 	output_camera_calibration(polarized_scene, args.output, radius, thetas, phis, args.image_count)
