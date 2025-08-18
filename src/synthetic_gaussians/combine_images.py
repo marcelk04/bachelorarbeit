@@ -14,51 +14,51 @@ from helpers.sys_helpers import *
 
 def main():
 	parser = argparse.ArgumentParser()
-	parser.add_argument("--indirect", "-i", type=str, required=True)
-	parser.add_argument("--direct", "-d", type=str, required=True)
-	parser.add_argument("--output", "-o", type=str, required=True)
+	parser.add_argument("--global_path", "-g", type=str, required=True)
+	parser.add_argument("--direct_path", "-d", type=str, required=True)
+	parser.add_argument("--output_path", "-o", type=str, required=True)
 	parser.add_argument("--gt", default="", type=str, required=False)
 	args = parser.parse_args()
 
 	# Only needed if no gt path was passed
 	if args.gt == "":
-		gt_indirect = os.path.join(args.indirect, "gt")
-		gt_direct = os.path.join(args.direct, "gt")
+		gt_global = os.path.join(args.global_path, "gt")
+		gt_direct = os.path.join(args.direct_path, "gt")
 
-		assert os.path.exists(gt_indirect)
+		assert os.path.exists(gt_global)
 		assert os.path.exists(gt_direct)
 
-	renders_indirect = os.path.join(args.indirect, "renders")
-	renders_direct = os.path.join(args.direct, "renders")
+	renders_global = os.path.join(args.global_path, "renders")
+	renders_direct = os.path.join(args.direct_path, "renders")
 
-	assert os.path.exists(renders_indirect)
+	assert os.path.exists(renders_global)
 	assert os.path.exists(renders_direct)
 
-	gt_output = os.path.join(args.output, "gt")
-	renders_output = os.path.join(args.output, "renders")
+	gt_output = os.path.join(args.output_path, "gt")
+	renders_output = os.path.join(args.output_path, "renders")
 
 	create_dir(gt_output)
 	create_dir(renders_output)
 
-	images = os.listdir(gt_indirect)
+	images = os.listdir(gt_global)
 
 	for image in tqdm(images, desc="Writing", total=len(images)):
 		# gt
 		if args.gt == "":
-			indirect = to_np_image(ski.io.imread(os.path.join(gt_indirect, image)))
-			direct = to_np_image(ski.io.imread(os.path.join(gt_direct, image)))
+			global_img = to_np_image(ski.io.imread(os.path.join(gt_global, image)))
+			direct_img = to_np_image(ski.io.imread(os.path.join(gt_direct, image)))
 
-			combined = reconstruct(indirect, direct)
+			combined = reconstruct(global_img, direct_img)
 
 			ski.io.imsave(os.path.join(gt_output, image), to_ski_image(combined), check_contrast=False)
 		else:
 			shutil.copyfile(os.path.join(args.gt, image), os.path.join(gt_output, image))
 
 		# renders
-		indirect = to_np_image(ski.io.imread(os.path.join(renders_indirect, image)))
-		direct = to_np_image(ski.io.imread(os.path.join(renders_direct, image)))
+		global_img = to_np_image(ski.io.imread(os.path.join(renders_global, image)))
+		direct_img = to_np_image(ski.io.imread(os.path.join(renders_direct, image)))
 
-		combined = reconstruct(indirect, direct)
+		combined = reconstruct(global_img, direct_img)
 
 		ski.io.imsave(os.path.join(renders_output, image), to_ski_image(combined), check_contrast=False)
 

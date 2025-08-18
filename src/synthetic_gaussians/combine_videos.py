@@ -14,24 +14,24 @@ from helpers.sys_helpers import *
 
 def main():
 	parser = argparse.ArgumentParser()
-	parser.add_argument("--indirect", "-i", type=str, required=True)
-	parser.add_argument("--direct", "-d", type=str, required=True)
-	parser.add_argument("--output", "-o", type=str, required=True)
+	parser.add_argument("--global_path", "-g", type=str, required=True)
+	parser.add_argument("--direct_path", "-d", type=str, required=True)
+	parser.add_argument("--output_path", "-o", type=str, required=True)
 	args = parser.parse_args()
 
 	# Make sure output directory exists
-	create_dir(os.path.dirname(args.output))
+	create_dir(os.path.dirname(args.output_path))
 
-	assert os.path.exists(args.indirect)
-	assert os.path.exists(args.direct)
+	assert os.path.exists(args.global_path)
+	assert os.path.exists(args.direct_path)
 
-	indirect_stream = cv2.VideoCapture(args.indirect)
-	direct_stream = cv2.VideoCapture(args.direct)
+	global_stream = cv2.VideoCapture(args.global_path)
+	direct_stream = cv2.VideoCapture(args.direct_path)
 
-	width = int(indirect_stream.get(cv2.CAP_PROP_FRAME_WIDTH))
-	height = int(indirect_stream.get(cv2.CAP_PROP_FRAME_HEIGHT))
-	fps = indirect_stream.get(cv2.CAP_PROP_FPS)
-	frame_count = int(indirect_stream.get(cv2.CAP_PROP_FRAME_COUNT))
+	width = int(global_stream.get(cv2.CAP_PROP_FRAME_WIDTH))
+	height = int(global_stream.get(cv2.CAP_PROP_FRAME_HEIGHT))
+	fps = global_stream.get(cv2.CAP_PROP_FPS)
+	frame_count = int(global_stream.get(cv2.CAP_PROP_FRAME_COUNT))
 
 	assert width == int(direct_stream.get(cv2.CAP_PROP_FRAME_WIDTH))
 	assert height == int(direct_stream.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -40,23 +40,23 @@ def main():
 	print(f"FPS: {fps}")
 	print(f"Frame count: {frame_count}")
 
-	out = cv2.VideoWriter(args.output, cv2.VideoWriter_fourcc(*'mp4v'), fps, (height, width))
+	out = cv2.VideoWriter(args.output_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (height, width))
 
 	for i in tqdm(range(frame_count), desc="Writing", total=frame_count):
 		try:
-			_, indirect = indirect_stream.read()
-			_, direct = direct_stream.read()
+			_, global_img = global_stream.read()
+			_, direct_img = direct_stream.read()
 
-			indirect = cv2.cvtColor(indirect, cv2.COLOR_BGR2RGB)
-			direct = cv2.cvtColor(direct, cv2.COLOR_BGR2RGB)
+			global_img = cv2.cvtColor(global_img, cv2.COLOR_BGR2RGB)
+			direct_img = cv2.cvtColor(direct_img, cv2.COLOR_BGR2RGB)
 
-			indirect = indirect.astype(np.float64) / 255.0
-			direct = direct.astype(np.float64) / 255.0
+			global_img = global_img.astype(np.float64) / 255.0
+			direct_img = direct_img.astype(np.float64) / 255.0
 
-			indirect = indirect ** 2.2
-			direct = direct ** 2.2
+			global_img = global_img ** 2.2
+			direct_img = direct_img ** 2.2
 
-			combined = reconstruct(indirect, direct)
+			combined = reconstruct(global_img, direct_img)
 
 			combined = combined ** (1.0 / 2.2) # gamma correction
 			combined = (np.clip(combined, 0, 1) * 255).astype(np.uint8) # continuous range [0, 1] to discrete range [0, 255]
@@ -68,7 +68,7 @@ def main():
 			print(f"Encountered an error at frame {i} :(")
 			break
 
-	indirect_stream.release()
+	global_stream.release()
 	direct_stream.release()
 	out.release()
 

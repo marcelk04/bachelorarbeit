@@ -40,7 +40,7 @@ def main():
 	output_path = os.path.join(source, "graphs")
 	create_dir(output_path)
 
-	scenes = ["unpolarized", "combined", "indirect", "direct"]
+	scenes = ["unpolarized", "composite", "global", "direct"]
 	metrics = ["PSNR", "SSIM", "LPIPS"]
 
 	for metric in metrics:

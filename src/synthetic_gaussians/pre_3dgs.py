@@ -18,10 +18,10 @@ from helpers.sys_helpers import *
 from helpers.polarization_helpers import *
 
 def separate_lighting(scenes: list[str], output: str) -> None:
-	indirect_path = os.path.join(output, "indirect", "images")
+	global_path = os.path.join(output, "global", "images")
 	direct_path = os.path.join(output, "direct", "images")
 
-	create_dir(indirect_path)
+	create_dir(global_path)
 	create_dir(direct_path)
 
 	images = sorted(os.listdir(os.path.join(scenes[0], "images")))
@@ -30,10 +30,10 @@ def separate_lighting(scenes: list[str], output: str) -> None:
 		img_0 = to_np_image(ski.io.imread(os.path.join(scenes[0], "images", img)))
 		img_90 = to_np_image(ski.io.imread(os.path.join(scenes[1], "images", img)))
 
-		indirect, direct = separate(img_0, img_90)
+		global_img, direct_img = separate(img_0, img_90)
 
-		ski.io.imsave(os.path.join(indirect_path, img), to_ski_image(indirect), check_contrast=False)
-		ski.io.imsave(os.path.join(direct_path, img), to_ski_image(direct), check_contrast=False)
+		ski.io.imsave(os.path.join(global_path, img), to_ski_image(global_img), check_contrast=False)
+		ski.io.imsave(os.path.join(direct_path, img), to_ski_image(direct_img), check_contrast=False)
 
 def extract_poses(calibration_file: str, output_path: str):
 	# Set camera model
@@ -249,8 +249,8 @@ def main():
 	if type(polarized_scenes) != type(None):
 		separate_lighting(polarized_scenes, args.workspace)
 
-		indirect_path = os.path.join(args.workspace, "indirect")
-		reconstruct(indirect_path, calibration_path, mask_path)
+		global_path = os.path.join(args.workspace, "global")
+		reconstruct(global_path, calibration_path, mask_path)
 
 		direct_path = os.path.join(args.workspace, "direct")
 		reconstruct(direct_path, calibration_path, mask_path)

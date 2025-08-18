@@ -6,6 +6,7 @@ import argparse
 import os
 import json
 from tqdm import tqdm
+from scipy.ndimage import gaussian_filter
 
 from pathlib import Path
 import sys
@@ -26,8 +27,8 @@ def render_masks(scene, radius, thetas, phis):
 	polarizer_cam_transform = mi.Transform4f(params["polarizer_cam.to_world"])
 
 	# Move polarizers away
-	params["polarizer_light.to_world"] = mi.Transform4f().translate([100, 100, 100])
-	params["polarizer_cam.to_world"] = mi.Transform4f().translate([100, 100, 100])
+	params["polarizer_light.to_world"] = mi.Transform4f().translate([0, 10000, 0])
+	params["polarizer_cam.to_world"] = mi.Transform4f().translate([0, 10000, 0])
 	params.update()
 
 	# Calculate maximum distance of vertices to camera
@@ -37,7 +38,7 @@ def render_masks(scene, radius, thetas, phis):
 	head_dist = np.linalg.norm(head_positions, ord=2, axis=0)
 	hair_dist = np.linalg.norm(hair_positions, ord=2, axis=0)
 
-	threshold = radius + min(head_dist.max(), hair_dist.max())
+	threshold = radius + max(head_dist.max(), hair_dist.max())
 
 	integrator = mi.load_dict({
 		"type": "depth"
@@ -46,7 +47,7 @@ def render_masks(scene, radius, thetas, phis):
 	images = render_from_angles(scene, radius, thetas, phis, polarized=False, integrator=integrator)
 	images = np.average(images, axis=-1) # convert to grayscale
 
-	masks = np.where(images > threshold, 0.0, 1.0)
+	masks = gaussian_filter(np.where(images > threshold, 0.0, 1.0), sigma=3, axes=(-1,-2))
 
 	# Undo changes to scenes
 	params["polarizer_light.to_world"] = polarizer_light_transform
@@ -62,7 +63,7 @@ def render_unpolarized_images(scene, radius, thetas, phis, spp):
 	polarizer_cam_transform = mi.Transform4f(params["polarizer_cam.to_world"])
 
 	# Move polarizers away
-	params["polarizer_cam.to_world"] = mi.Transform4f().translate([100, 100, 100])
+	params["polarizer_cam.to_world"] = mi.Transform4f().translate([0, 10000, 0])
 	params.update()
 
 	images = render_from_angles(scene, radius, thetas, phis, polarized=False, spp=spp)
@@ -156,16 +157,13 @@ def main():
 	thetas_train, phis_train = golden_spiral(args.image_count)
 
 	# Test views
-	# thetas_0 = np.array([0.35*np.pi, 0.5*np.pi, 0.65*np.pi])
-	# phis_0 = np.linspace(0, 2*np.pi, 4, endpoint=False)
+	thetas_0 = np.array([0.35*np.pi, 0.5*np.pi, 0.65*np.pi])
+	phis_0 = np.linspace(0, 2*np.pi, 4, endpoint=False)
 
-	# thetas_test, phis_test = np.meshgrid(thetas_0, phis_0)
+	thetas_test, phis_test = np.meshgrid(thetas_0, phis_0)
 
-	# thetas = np.concatenate([thetas_train, thetas_test.flatten()])
-	# phis = np.concatenate([phis_train, phis_test.flatten()])
-
-	thetas = thetas_train
-	phis = phis_train
+	thetas = np.concatenate([thetas_train, thetas_test.flatten()])
+	phis = np.concatenate([phis_train, phis_test.flatten()])
 
 	print("Loading scenes...")
 	dr.set_flag(dr.JitFlag.Debug, True)
@@ -191,15 +189,6 @@ def main():
 	save_images(polarized_images[:, 0, ...], os.path.join(args.output, "polarized_0", "images"))
 	save_images(polarized_images[:, 1, ...], os.path.join(args.output, "polarized_90", "images"))
 	print()
-
-	# Test views
-	thetas_0 = np.array([0.35*np.pi, 0.5*np.pi, 0.65*np.pi])
-	phis_0 = np.linspace(0, 2*np.pi, 4, endpoint=False)
-
-	thetas_test, phis_test = np.meshgrid(thetas_0, phis_0)
-
-	thetas = np.concatenate([thetas_train, thetas_test.flatten()])
-	phis = np.concatenate([phis_train, phis_test.flatten()])
 
 	print("Generating camera poses...")
 	output_camera_calibration(polarized_scene, args.output, radius, thetas, phis, args.image_count)
