@@ -37,3 +37,7 @@
 - ~~evaluate perfomance regularly on test cams (PSNR, ...)~~
 
 ## Train NeRF model
+
+## Further analyze generated gaussians
+
+- mostly in hair area, e.g. rotation
