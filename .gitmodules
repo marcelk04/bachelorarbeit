@@ -4,3 +4,6 @@
 [submodule "submodules/gaussian-splatting"]
 	path = submodules/gaussian-splatting
 	url = https://github.com/marcelk04/gaussian-splatting.git
+[submodule "submodules/instant-ngp"]
+	path = submodules/instant-ngp
+	url = https://github.com/marcelk04/instant-ngp.git

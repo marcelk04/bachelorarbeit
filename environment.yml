@@ -20,6 +20,9 @@ dependencies:
   - colmap=3.11.1
   - sqlite
   - plyfile
+  - commentjson
+  - pybind11
+  - pyquaternion
   - pip:
     - mitsuba
     - submodules/gaussian-splatting/submodules/diff-gaussian-rasterization
