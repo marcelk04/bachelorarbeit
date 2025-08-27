@@ -5,6 +5,7 @@ import numpy as np
 import argparse
 import os
 import json
+import math
 from tqdm import tqdm
 from scipy.ndimage import gaussian_filter
 
@@ -90,7 +91,7 @@ def save_images(images, path, extension=".png"):
 
 		ski.io.imsave(output, to_ski_image(image), check_contrast=False)
 
-def output_camera_calibration(scene, output_path, radius, thetas, phis, num_train_cams):
+def output_poses(scene, output_path, radius, thetas, phis, num_train_cams):
 	params = mi.traverse(scene)
 
 	width, height = params["sensor.film.size"]
@@ -131,11 +132,119 @@ def output_camera_calibration(scene, output_path, radius, thetas, phis, num_trai
 	poses = {}
 	poses["cameras"] = cameras
 
-	json_object = json.dumps(poses, indent=2)
-
 	with open(os.path.join(output_path, "poses.json"), "w") as outfile:
-		outfile.write(json_object)
+		json.dump(poses, outfile, indent=2)
 
+def output_transforms(scene, scene_path, radius, thetas, phis, num_train_cams):
+	params = mi.traverse(scene)
+
+	width, height = params["sensor.film.size"]
+	principal_point_x = width / 2 + params["sensor.principal_point_offset_x"][0]
+	principal_point_y = height / 2 + params["sensor.principal_point_offset_y"][0]
+	focal_length = fov_to_focal(params["sensor.x_fov"][0], width)
+
+	transforms = {}
+	transforms["w"] = width
+	transforms["h"] = height
+	transforms["fl_x"] = focal_length
+	transforms["fl_y"] = focal_length
+	transforms["cx"] = principal_point_x
+	transforms["cy"] = principal_point_y
+	transforms["k1"] = 0.0
+	transforms["k2"] = 0.0
+	transforms["p1"] = 0.0
+	transforms["p2"] = 0.0
+	transforms["camera_angle_x"] = math.atan(width / (2 * focal_length)) * 2
+	transforms["camera_angle_y"] = math.atan(height / (2 * focal_length)) * 2
+
+	transforms["aabb_scale"] = 128
+	transforms["frames"] = []
+
+	up = np.zeros(3)
+
+	for i, theta, phi in tqdm(zip(range(num_train_cams), thetas, phis), desc="Writing", total=num_train_cams):
+		camera_position = spherical_to_cartesian(radius, theta, phi)
+		transform = mi.Transform4f().look_at(origin=camera_position, target=[0, 0, 0], up=[0, -1, 0])
+		view_matrix = transform.matrix.numpy()[..., 0]
+
+		view_matrix = view_matrix_inverse(view_matrix)
+
+		# do weird shit
+		R = view_matrix[:3, :3]
+		tvec = view_matrix[:3, 3]
+		qvec = rotmat2qvec(R)
+
+		R = qvec2rotmat(-qvec)
+		t = tvec.reshape((3,1))
+		m = np.concatenate([np.concatenate([R, t], axis=1), np.array([[0.0,0.0,0.0,1.0]])], axis=0)
+		c2w = np.linalg.inv(m)
+
+		# wtf
+		c2w[0:3,2] *= -1
+		c2w[0:3,1] *= -1
+		c2w = c2w[[1,0,2,3],:]
+		c2w[2,:] *= -1
+
+		up += c2w[0:3,1]
+
+		# flip_mat = np.array([
+		# 	[1, 0, 0, 0],
+		# 	[0, -1, 0, 0],
+		# 	[0, 0, -1, 0],
+		# 	[0, 0, 0, 1]
+		# ])
+
+		# c2w = np.matmul(c2w, flip_mat)
+
+		# view_matrix = view_matrix_inverse(view_matrix)
+
+		file_path = os.path.join(scene_path, "images", str(i).zfill(4) + ".png")
+		b = sharpness(file_path)
+
+		camera = {}
+		camera["file_path"] = os.path.join("images", str(i).zfill(4) + ".png")
+		camera["sharpness"] = b
+		camera["transform_matrix"] = c2w
+
+		transforms["frames"].append(camera)
+
+	# idek anymore
+	up = up / np.linalg.norm(up)
+	R = rotmat(up, [0,0,1])
+	R = np.pad(R, [0,1])
+	R[-1, -1] = 1
+
+	for f in transforms["frames"]:
+		f["transform_matrix"] = np.matmul(R, f["transform_matrix"])
+
+	totw = 0.0
+	totp = np.array([0.0, 0.0, 0.0])
+	for f in transforms["frames"]:
+		mf = f["transform_matrix"][0:3,:]
+		for g in transforms["frames"]:
+			mg = g["transform_matrix"][0:3,:]
+			p, w = closest_point_2_lines(mf[:,3], mf[:,2], mg[:,3], mg[:,2])
+			if w > 0.00001:
+				totp += p*w
+				totw += w
+	if totw > 0.0:
+		totp /= totw
+	print(totp) # the cameras are looking at totp
+	for f in transforms["frames"]:
+		f["transform_matrix"][0:3,3] -= totp
+
+	avglen = 0.
+	for f in transforms["frames"]:
+		avglen += np.linalg.norm(f["transform_matrix"][0:3,3])
+	avglen /= num_train_cams
+	for f in transforms["frames"]:
+		f["transform_matrix"][0:3,3] *= 4.0 / avglen # scale to "nerf sized"
+
+	for f in transforms["frames"]:
+		f["transform_matrix"] = f["transform_matrix"].tolist()
+
+	with open(os.path.join(scene_path, "transforms.json"), "w") as outfile:
+		json.dump(transforms, outfile, indent=2)
 
 def main():
 	parser = argparse.ArgumentParser()
@@ -172,26 +281,27 @@ def main():
 	unpolarized_scene = mi.load_file(args.scene, res=args.resolution, polarizing=False)
 	print()
 
-	print("Generating alpha masks...")
-	masks = render_masks(polarized_scene, radius, thetas, phis)
-	save_images(masks, os.path.join(args.output, "masks"), extension=".png.png")
-	print()
+	# print("Generating alpha masks...")
+	# masks = render_masks(polarized_scene, radius, thetas, phis)
+	# save_images(masks, os.path.join(args.output, "masks"), extension=".png.png")
+	# print()
 
-	print("Generating unpolarized images...")
-	unpolarized_images = render_unpolarized_images(unpolarized_scene, radius, thetas, phis, args.samples)
-	unpolarized_images = mask_images(unpolarized_images, masks)
-	save_images(unpolarized_images, os.path.join(args.output, "unpolarized", "images"))
-	print()
+	# print("Generating unpolarized images...")
+	# unpolarized_images = render_unpolarized_images(unpolarized_scene, radius, thetas, phis, args.samples)
+	# unpolarized_images = mask_images(unpolarized_images, masks)
+	# save_images(unpolarized_images, os.path.join(args.output, "unpolarized", "images"))
+	# print()
 
-	print("Generating polarized images...")
-	polarized_images = render_polarized_images(polarized_scene, radius, thetas, phis, args.samples)
-	polarized_images = mask_images(polarized_images, masks)
-	save_images(polarized_images[:, 0, ...], os.path.join(args.output, "polarized_0", "images"))
-	save_images(polarized_images[:, 1, ...], os.path.join(args.output, "polarized_90", "images"))
-	print()
+	# print("Generating polarized images...")
+	# polarized_images = render_polarized_images(polarized_scene, radius, thetas, phis, args.samples)
+	# polarized_images = mask_images(polarized_images, masks)
+	# save_images(polarized_images[:, 0, ...], os.path.join(args.output, "polarized_0", "images"))
+	# save_images(polarized_images[:, 1, ...], os.path.join(args.output, "polarized_90", "images"))
+	# print()
 
 	print("Generating camera poses...")
-	output_camera_calibration(polarized_scene, args.output, radius, thetas, phis, args.image_count)
+	output_poses(polarized_scene, args.output, radius, thetas, phis, args.image_count)
+	output_transforms(polarized_scene, os.path.join(args.output, "unpolarized"), radius, thetas, phis, args.image_count)
 
 if __name__ == "__main__":
 	main()

@@ -13,29 +13,10 @@ path_root = Path(__file__).parents[1]
 sys.path.append(str(path_root))
 
 from thirdparty.database import *
-from helpers.math_helpers import *
-from helpers.sys_helpers import *
-from helpers.polarization_helpers import *
+from helpers.math_helpers import rotmat2qvec
+from helpers.sys_helpers import create_dir, exec_cmd, write_lines_to_file
 
-def separate_lighting(scenes: list[str], output: str) -> None:
-	global_path = os.path.join(output, "global", "images")
-	direct_path = os.path.join(output, "direct", "images")
-
-	create_dir(global_path)
-	create_dir(direct_path)
-
-	images = sorted(os.listdir(os.path.join(scenes[0], "images")))
-
-	for img in tqdm(images, desc="Separating lighting", total=len(images)):
-		img_0 = to_np_image(ski.io.imread(os.path.join(scenes[0], "images", img)))
-		img_90 = to_np_image(ski.io.imread(os.path.join(scenes[1], "images", img)))
-
-		global_img, direct_img = separate(img_0, img_90)
-
-		ski.io.imsave(os.path.join(global_path, img), to_ski_image(global_img), check_contrast=False)
-		ski.io.imsave(os.path.join(direct_path, img), to_ski_image(direct_img), check_contrast=False)
-
-def extract_poses(calibration_file: str, output_path: str):
+def extract_poses(calibration_file: str, output_path: str) -> None:
 	# Set camera model
 	camera_model = 1 # PINHOLE
 
@@ -128,7 +109,7 @@ def extract_poses(calibration_file: str, output_path: str):
 	print("Done writing text output")
 	print()
 
-def run_colmap(image_source: str, mask_source: str, output_path: str):
+def run_colmap(image_source: str, mask_source: str, output_path: str) -> None:
 	manual_path = os.path.join(output_path, "manual")
 	# undistorted_path = os.path.join(output_path, "images")
 	distorted_path = os.path.join(output_path, "distorted")
@@ -188,72 +169,53 @@ def run_colmap(image_source: str, mask_source: str, output_path: str):
 		destination_file = os.path.join(sparse0, file)
 		shutil.move(source_file, destination_file)
 
-
-def reconstruct(scene_path: str, calibration_path: str, mask_path: str) -> None:
-	input_path = os.path.join(scene_path, "images")
-	output_path = os.path.join(scene_path, "colmap")
-
+def reconstruct(image_path: str, output_path: str, calibration_path: str, mask_path: str) -> None:
 	if os.path.exists(output_path):
-		print(f"Removing old reconstruction for {scene_path}")
+		print(f"Removing old reconstruction for {output_path}")
 		shutil.rmtree(output_path)
 
-	print(f"Starting reconstruction for {scene_path}...")
+	print(f"Starting reconstruction for {image_path}...")
 	print()
 
 	extract_poses(calibration_path, output_path)
-	run_colmap(input_path, mask_path, output_path)
+	run_colmap(image_path, mask_path, output_path)
 
 
-def main():
-	parser = argparse.ArgumentParser(prog="python pre_vci.py")
-	parser.add_argument("--workspace", "-w", type=str, required=True)
-	parser.add_argument("--skip_polarized", action="store_true")
-	parser.add_argument("--skip_unpolarized", action="store_true")
+def main() -> None:
+	parser = argparse.ArgumentParser()
+	parser.add_argument("--source", "-s", default="", type=str, required=True, help="Path to the source images.")
+	parser.add_argument("--output", "-o", default="", type=str, required=True, help="Path to the output directory (default: SOURCE).")
+	parser.add_argument("--calibration_path", "-c", default="", type=str, required=False, help="Path to the calibration file (default: SOURCE/poses.json).")
+	parser.add_argument("--mask_path", "-m", default="", type=str, required=False, help="Path to the alpha masks. If no path is passed, the program will look in SOURCE/masks.")
 	args = parser.parse_args()
 
-	# assert workspace exists
-	assert os.path.exists(args.workspace)
+	# Make sure image input exists
+	if args.output == "":
+		args.output = args.source
+	assert os.path.exists(args.source)
 
-	# assert calibration file exists
-	calibration_path = os.path.join(args.workspace, "poses.json")
-	assert os.path.exists(calibration_path)
+	# Make sure the calibration file exists
+	if args.calibration_path == "":
+		args.calibration_path = os.path.join(args.source, "poses.json")
+	assert os.path.exists(args.calibration_path)
 
-	# look for masks
-	mask_path = os.path.join(args.workspace, "masks")
-	if not os.path.exists(mask_path):
-		mask_path = None
+	# Search for alpha masks
+	if args.mask_path == "":
+		args.mask_path = os.path.join(args.source, "masks")
+	if not os.path.exists(args.mask_path):
+		args.mask_path = None
 
-	# look for unpolarized scene
-	unpolarized_scene = os.path.join(args.workspace, "unpolarized")
-	if args.skip_unpolarized:
-		unpolarized_scene = None
-	elif not os.path.exists(unpolarized_scene):
-		print("Unpolarized scene not found. Skipping this one.")
-		unpolarized_scene = None
+	# Make sure all scenes exist
+	scenes = ["unpolarized", "global", "direct"]
+	scene_sources = [os.path.join(args.source, scene, "images") for scene in scenes]
+	scene_outputs = [os.path.join(args.output, scene, "colmap") for scene in scenes]
 
-	# look for polarized scenes
-	polarized_scenes = sorted([os.path.join(args.workspace, elem) for elem in os.listdir(args.workspace) if elem.startswith("polarized_")])
-	if args.skip_polarized:
-		polarized_scenes = None
-	elif len(polarized_scenes) < 2:
-		print("Not enough polarized scenes found. Skipping this one.")
-		polarized_scenes = None
-	else:
-		print(f"Found polarized scenes: {polarized_scenes}")
+	for scene in scene_sources:
+		assert os.path.exists(scene)
 
-	# reconstruct unpolarized scene
-	if type(unpolarized_scene) != type(None):
-		reconstruct(unpolarized_scene, calibration_path, mask_path)
-
-	# separate polarized lighting and reconstruct scenes
-	if type(polarized_scenes) != type(None):
-		separate_lighting(polarized_scenes, args.workspace)
-
-		global_path = os.path.join(args.workspace, "global")
-		reconstruct(global_path, calibration_path, mask_path)
-
-		direct_path = os.path.join(args.workspace, "direct")
-		reconstruct(direct_path, calibration_path, mask_path)
+	# Run COLMAP reconstruction for all scenes
+	for scene_src, scene_dst in zip(scene_sources, scene_outputs):
+		reconstruct(scene_src, scene_dst, args.calibration_path, args.mask_path)
 
 if __name__ == "__main__":
 	main()
