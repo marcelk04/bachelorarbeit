@@ -57,24 +57,6 @@ def rotmat(a, b):
 	kmat = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
 	return np.eye(3) + kmat + kmat.dot(kmat) * ((1 - c) / (s ** 2 + 1e-10))
 
-# implementation from stack overflow: https://stackoverflow.com/a/26127012
-def fibonacci_sphere(samples):
-	points = np.zeros((samples, 3))
-	phi = np.pi * (np.sqrt(5.) - 1.)  # golden angle in radians
-
-	for i in range(samples):
-		y = 1 - (i / float(samples - 1)) * 2  # y goes from 1 to -1
-		radius = np.sqrt(1 - y * y)  # radius at y
-
-		theta = phi * i  # golden angle increment
-
-		x = np.cos(theta) * radius
-		z = np.sin(theta) * radius
-
-		points[i] = np.array([x, y, z])
-
-	return points
-
 # implementation from stack overflow: https://stackoverflow.com/a/44164075
 def golden_spiral(samples):
 	indices = np.arange(0, samples, dtype=float) + 0.5

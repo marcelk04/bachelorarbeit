@@ -129,8 +129,9 @@
 
 	<shape type="rectangle" id="polarizer_cam">
 		<transform name="to_world">
+			<scale value="1e-20"/>
 			<rotate z="1" angle="90"/>
-			<lookat target="0, 0, 0" origin="0, 0, 100000" up="0, 1, 0"/>
+			<translate x="0" y="0" z="100000"/>
 		</transform>
 
 		<bsdf type="polarizer">
