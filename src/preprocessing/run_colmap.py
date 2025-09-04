@@ -16,7 +16,7 @@ from thirdparty.database import *
 from helpers.math_helpers import rotmat2qvec
 from helpers.sys_helpers import create_dir, exec_cmd, write_lines_to_file
 
-def extract_poses(calibration_file: str, output_path: str) -> None:
+def extract_poses(calibration_file: str, output_path: str, include_test_cams: bool) -> None:
 	# Set camera model
 	camera_model = 1 # PINHOLE
 
@@ -52,6 +52,9 @@ def extract_poses(calibration_file: str, output_path: str) -> None:
 		# TODO: Test cameras should not be used for reconstruction
 		if camera["is_test_cam"]:
 			test_cams.append(f"{camera_name}\n")
+
+			if not include_test_cams:
+				continue
 
 		# Extract pose information from the JSON file
 		view_matrix = np.array(camera["extrinsics"]["view_matrix"], dtype=np.float64).reshape((4, 4)) # View Matrix is given in World-To-Camera Space 
@@ -169,7 +172,7 @@ def run_colmap(image_source: str, mask_source: str, output_path: str) -> None:
 		destination_file = os.path.join(sparse0, file)
 		shutil.move(source_file, destination_file)
 
-def reconstruct(image_path: str, output_path: str, calibration_path: str, mask_path: str) -> None:
+def reconstruct(image_path: str, output_path: str, calibration_path: str, mask_path: str, include_test_cams: bool) -> None:
 	if os.path.exists(output_path):
 		print(f"Removing old reconstruction for {output_path}")
 		shutil.rmtree(output_path)
@@ -177,7 +180,7 @@ def reconstruct(image_path: str, output_path: str, calibration_path: str, mask_p
 	print(f"Starting reconstruction for {image_path}...")
 	print()
 
-	extract_poses(calibration_path, output_path)
+	extract_poses(calibration_path, output_path, include_test_cams)
 	run_colmap(image_path, mask_path, output_path)
 
 
@@ -187,6 +190,7 @@ def main() -> None:
 	parser.add_argument("--output", "-o", default="", type=str, required=True, help="Path to the output directory (default: SOURCE).")
 	parser.add_argument("--calibration_path", "-c", default="", type=str, required=False, help="Path to the calibration file (default: SOURCE/poses.json).")
 	parser.add_argument("--mask_path", "-m", default="", type=str, required=False, help="Path to the alpha masks. If no path is passed, the program will look in SOURCE/masks.")
+	parser.add_argument("--include_test_cams", action="store_true", help="Include test cameras in the reconstruction.")
 	args = parser.parse_args()
 
 	# Make sure image input exists
@@ -215,7 +219,7 @@ def main() -> None:
 
 	# Run COLMAP reconstruction for all scenes
 	for scene_src, scene_dst in zip(scene_sources, scene_outputs):
-		reconstruct(scene_src, scene_dst, args.calibration_path, args.mask_path)
+		reconstruct(scene_src, scene_dst, args.calibration_path, args.mask_path, args.include_test_cams)
 
 if __name__ == "__main__":
 	main()

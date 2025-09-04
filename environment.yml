@@ -23,6 +23,7 @@ dependencies:
   - commentjson
   - pybind11
   - pyquaternion
+  - tinyobjloader
   - pip:
     - mitsuba
     - submodules/gaussian-splatting/submodules/diff-gaussian-rasterization
