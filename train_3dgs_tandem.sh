@@ -15,7 +15,7 @@ SCENE_LIST=(
 
 # Preprocessing (separate lighting, COLMAP)
 # python src/preprocessing/separate_lighting.py -s $IMAGE_PATH
-# python src/preprocessing/run_colmap.py -s $IMAGE_PATH -o $OUTPUT_PATH
+# python src/preprocessing/run_colmap.py -s $IMAGE_PATH -o $OUTPUT_PATH --include_test_cams
 
 # Train unpolarized model
 # python submodules/gaussian-splatting/train.py -s $OUTPUT_PATH/unpolarized/colmap -m $OUTPUT_PATH/unpolarized/model --disable_viewer --eval
