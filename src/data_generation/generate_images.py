@@ -48,7 +48,7 @@ def render_masks(scene, radius, thetas, phis):
 	images = render_from_angles(scene, radius, thetas, phis, polarized=False, integrator=integrator)
 	images = np.average(images, axis=-1) # convert to grayscale
 
-	masks = gaussian_filter(np.where(images > threshold, 0.0, 1.0), sigma=3, axes=(-1,-2))
+	masks = np.where(images > threshold, 0.0, 1.0)
 
 	# Undo changes to scenes
 	params["polarizer_light.to_world"] = polarizer_light_transform

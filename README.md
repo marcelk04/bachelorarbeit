@@ -1,5 +1,19 @@
 # NeRF and 3DGS based reconstruction of direct-global separated multiview image data
 
+## Cloning the Repository
+
+Make sure you clone the repository along with all submodules by using:
+
+```bash
+git clone --recurse-submodules https://github.com/marcelk04/bachelorarbeit.git
+```
+
+Afterwards, navigate to the directory with:
+
+```bash
+cd bachelorarbeit
+```
+
 ## Installing the dependencies
 
 Create the environment and install all necessary packages using:
@@ -39,4 +53,4 @@ Simply run the `train_*.sh` script of your choice, e.g.:
 bash train_3dgs_tandem.sh
 ```
 
-Make sure, the paths in the file match your desired dataset and output directory.
+Make sure that the paths in the file match your desired dataset and output directory.
