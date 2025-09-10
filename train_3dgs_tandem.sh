@@ -1,8 +1,8 @@
-export CUDA_VISIBLE_DEVICES=5
+export CUDA_VISIBLE_DEVICES=6
 
 SCENE_PATH="scenes/marcus_light_sphere_hair.xml"
 IMAGE_PATH="output/marcus_64"
-OUTPUT_PATH="output/tandem"
+OUTPUT_PATH="output/tandem_2"
 
 SCENE_LIST=(
 	unpolarized
@@ -14,11 +14,11 @@ SCENE_LIST=(
 # python src/data_generation/generate_images.py -s $SCENE_PATH -o $IMAGE_PATH --res 1024 --spp 128 -c 64
 
 # Preprocessing (separate lighting, COLMAP)
-# python src/preprocessing/separate_lighting.py -s $IMAGE_PATH
+python src/preprocessing/separate_lighting.py -s $IMAGE_PATH
 # python src/preprocessing/run_colmap.py -s $IMAGE_PATH -o $OUTPUT_PATH --include_test_cams
 
 # Train unpolarized model
-# python submodules/gaussian-splatting/train.py -s $OUTPUT_PATH/unpolarized/colmap -m $OUTPUT_PATH/unpolarized/model --disable_viewer --eval
+python submodules/gaussian-splatting/train.py -s $OUTPUT_PATH/unpolarized/colmap -m $OUTPUT_PATH/unpolarized/model --disable_viewer --eval
 
 # Train composite model
 python submodules/gaussian-splatting/train_tandem.py --source1 $OUTPUT_PATH/global/colmap --model1 $OUTPUT_PATH/global/model --source2 $OUTPUT_PATH/direct/colmap --model2 $OUTPUT_PATH/direct/model --disable_viewer --eval
