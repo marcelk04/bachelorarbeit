@@ -28,6 +28,36 @@ You can then activate the environment with:
 conda activate ba
 ```
 
+### Building Instant-NGP
+
+For detailed instructions, check out [the Instant-NGP README](https://github.com/NVlabs/instant-ngp#building-instant-ngp-windows--linux). All required packages are already installed on the VCI GPU server. The essential steps for building are layed out below.
+
+First, make sure the conda environment is activated, as the python bindings have to be compiled for the correct python version.
+
+```bash
+conda activate ba
+```
+
+To start with building, navigate to the Instant-NGP directory:
+
+```bash
+cd submodules/instant-ngp
+```
+
+Then, use CMake to generate a build configuration:
+
+```bash
+cmake . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+```
+
+And finally build the project:
+
+```bash
+cmake --build build --config RelWithDebInfo -j
+```
+
+Afterwards, you should be done and all scripts should run without any problems.
+
 ## Acquiring Datasets
 
 You can find some datasets under the release page.

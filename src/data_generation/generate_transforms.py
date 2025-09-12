@@ -14,7 +14,7 @@ sys.path.append(str(path_root))
 
 from helpers.math_helpers import fov_to_focal, spherical_to_cartesian, sharpness, golden_spiral, closest_point_2_lines
 
-def output_transforms(scene, scene_path, radius, thetas, phis, num_train_cams):
+def output_transforms(scene, scene_path, radius, thetas, phis, num_train_cams, name="transforms.json", start_from=0):
 	params = mi.traverse(scene)
 
 	width, height = params["sensor.film.size"]
@@ -39,8 +39,6 @@ def output_transforms(scene, scene_path, radius, thetas, phis, num_train_cams):
 	transforms["aabb_scale"] = 1
 	transforms["frames"] = []
 
-	up = np.zeros(3)
-
 	for i, theta, phi in tqdm(zip(range(num_train_cams), thetas, phis), desc="Writing", total=num_train_cams):
 		t2 = np.array([[0, 0, 1, 0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
 
@@ -56,11 +54,11 @@ def output_transforms(scene, scene_path, radius, thetas, phis, num_train_cams):
 
 		# view_matrix = view_matrix_inverse(view_matrix)
 
-		file_path = os.path.join(scene_path, "images", str(i).zfill(4) + ".png")
+		file_path = os.path.join(scene_path, "images", str(i + start_from).zfill(4) + ".png")
 		b = sharpness(file_path)
 
 		camera = {}
-		camera["file_path"] = os.path.join("images", str(i).zfill(4) + ".png")
+		camera["file_path"] = os.path.join("images", str(i + start_from).zfill(4) + ".png")
 		camera["sharpness"] = b
 		camera["transform_matrix"] = view_matrix
 
@@ -83,7 +81,7 @@ def output_transforms(scene, scene_path, radius, thetas, phis, num_train_cams):
 	for f in transforms["frames"]:
 		f["transform_matrix"] = f["transform_matrix"].tolist()
 
-	with open(os.path.join(scene_path, "transforms.json"), "w") as outfile:
+	with open(os.path.join(scene_path, name), "w") as outfile:
 		json.dump(transforms, outfile, indent=2)
 
 def main():
@@ -95,8 +93,16 @@ def main():
 	parser.add_argument("--image_count", "-c", default=64, type=int, required=False)
 	args = parser.parse_args()
 
+	# Train views
 	radius = 4 # for nerf scale
 	thetas, phis = golden_spiral(args.image_count)
+
+	thetas_0 = np.array([0.35*np.pi, 0.5*np.pi, 0.65*np.pi])
+	phis_0 = np.linspace(0, 2*np.pi, 4, endpoint=False)
+
+	thetas_test, phis_test = np.meshgrid(thetas_0, phis_0)
+	thetas_test = thetas_test.flatten()
+	phis_test = phis_test.flatten()
 
 	print("Loading scenes...")
 	mi.set_variant("cuda_ad_spectral_polarized")
@@ -105,6 +111,7 @@ def main():
 
 	for scene in ["unpolarized", "direct", "global"]:
 		output_transforms(polarized_scene, os.path.join(args.output, scene), radius, thetas, phis, args.image_count)
+		output_transforms(polarized_scene, os.path.join(args.output, scene), radius, thetas_test, phis_test, len(thetas_test), name="transforms_test.json", start_from=args.image_count)
 
 
 if __name__ == "__main__":
