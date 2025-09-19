@@ -1,5 +1,7 @@
 # NeRF and 3DGS based reconstruction of direct-global separated multiview image data
 
+<img src="comparison.svg">
+
 ## Cloning the Repository
 
 Make sure you clone the repository along with all submodules by using:
@@ -27,6 +29,14 @@ You can then activate the environment with:
 ```bash
 conda activate ba
 ```
+
+If you have any dependency problems with the environment above, you can also try:
+
+```bash
+conda env create -f environment_alternative.yml
+```
+
+This environment specifies the exact version for all packages used.
 
 ### Building Instant-NGP
 

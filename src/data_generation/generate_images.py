@@ -1,3 +1,4 @@
+from email.mime import image
 import mitsuba as mi
 import drjit as dr
 import skimage as ski
@@ -78,8 +79,11 @@ def render_unpolarized_images(scene, radius, thetas, phis, spp):
 def render_polarized_images(scene, radius, thetas, phis, spp):
 	return render_from_angles(scene, radius, thetas, phis, polarized=True, spp=spp)
 
-def mask_images(images, masks):
-	return images * masks[..., None]
+def mask_images(images, masks, white_background=False):
+	if white_background:
+		return images * masks[..., None] + (1 - masks[..., None])
+	else:
+		return images * masks[..., None]
 
 def save_images(images, path, extension=".png"):
 	N = images.shape[0]
@@ -142,6 +146,7 @@ def main():
 	parser.add_argument("--resolution", "--res", "-r", default=512, type=int, required=False)
 	parser.add_argument("--samples", "--spp", default=512, type=int, required=False)
 	parser.add_argument("--image_count", "-c", default=64, type=int, required=False)
+	parser.add_argument("--white_background", "-w", action="store_true", required=False)
 	args = parser.parse_args()
 
 	assert os.path.exists(args.scene)
@@ -177,13 +182,15 @@ def main():
 
 	print("Generating unpolarized images...")
 	unpolarized_images = render_unpolarized_images(unpolarized_scene, radius, thetas, phis, args.samples)
-	unpolarized_images = mask_images(unpolarized_images, masks)
+	unpolarized_images = mask_images(unpolarized_images, masks, args.white_background)
 	save_images(unpolarized_images, os.path.join(args.output, "unpolarized", "images"))
 	print()
 
 	print("Generating polarized images...")
 	polarized_images = render_polarized_images(polarized_scene, radius, thetas, phis, args.samples)
-	polarized_images = mask_images(polarized_images, masks)
+	# polarized_images = mask_images(polarized_images, masks, args.white_background)
+	polarized_images[:, 0:1, ...] = mask_images(polarized_images[:, 0:1, ...], masks, args.white_background)
+	polarized_images[:, 1:2, ...] = mask_images(polarized_images[:, 1:2, ...], masks)
 	save_images(polarized_images[:, 0, ...], os.path.join(args.output, "polarized_0", "images"))
 	save_images(polarized_images[:, 1, ...], os.path.join(args.output, "polarized_90", "images"))
 	print()

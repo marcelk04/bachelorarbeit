@@ -111,6 +111,7 @@ def convert(input: str, output: str, target_strands: int):
 
 	lines = []
 
+	radius = 0.004
 	point_idx = 0
 
 	print("Converting Strands:")
@@ -118,7 +119,7 @@ def convert(input: str, output: str, target_strands: int):
 		start_indices.append(point_idx)
 
 		strand = get_strand(strand_idx, header, points, segments, start_indices)
-		line = strand_to_string(strand, radius=0.004)
+		line = strand_to_string(strand, radius=radius)
 		lines.append(line)
 
 		point_idx += len(strand)
@@ -128,7 +129,7 @@ def convert(input: str, output: str, target_strands: int):
 		strand_idx = random.randint(0, header.num_strands-1)
 		offset = (rand_float(-0.1, 0.1), rand_float(-0.1, 0.1), rand_float(-0.1, 0.1))
 		strand = get_strand(strand_idx, header, points, segments, start_indices, offset)
-		line = strand_to_string(strand)
+		line = strand_to_string(strand, radius=radius)
 		lines.append(line)
 
 
