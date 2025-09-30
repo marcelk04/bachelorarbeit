@@ -45,7 +45,7 @@ def main():
 	args = parser.parse_args()
 
 	for scene in ["unpolarized", "global", "direct"]:
-		mask_and_copy_renders(args.source, scene)
+		# mask_and_copy_renders(args.source, scene)
 		copy_gt_images(args.source, scene)
 
 

@@ -11,7 +11,7 @@ SCENE_LIST=(
 )
 
 # Render dataset
-# python src/data_generation/generate_images.py -s $SCENE_PATH -o $IMAGE_PATH --res 1024 --spp 128 -c 64
+python src/data_generation/generate_images.py -s $SCENE_PATH -o $IMAGE_PATH --res 1024 --spp 128 -c 64
 
 # Preprocessing (separate lighting, COLMAP)
 python src/preprocessing/separate_lighting.py -s $IMAGE_PATH

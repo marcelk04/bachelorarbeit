@@ -16,6 +16,7 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--source", "-s", type=str, required=True, help="Path to the source directory containing training images.")
 	parser.add_argument("--output", "-o", type=str, required=True, help="Path to the output directory where images will be copied.")
+	parser.add_argument("--copy_masks", "-m", action="store_true", help="Whether to copy and invert masks.")
 	args = parser.parse_args()
 
 	assert os.path.exists(args.source)
@@ -32,14 +33,17 @@ if __name__ == "__main__":
 		output_path = os.path.join(args.output, scene, "images")
 		create_dir(output_path)
 
-		shutil.copyfile(os.path.join(args.source, scene, "transforms.json"), os.path.join(args.output, scene, "transforms.json"))
-		shutil.copyfile(os.path.join(args.source, scene, "transforms_test.json"), os.path.join(args.output, scene, "transforms_test.json"))
+		# shutil.copyfile(os.path.join(args.source, scene, "transforms.json"), os.path.join(args.output, scene, "transforms.json"))
+		# shutil.copyfile(os.path.join(args.source, scene, "transforms_test.json"), os.path.join(args.output, scene, "transforms_test.json"))
 
 		files = sorted(os.listdir(source_path))
 
 		for file in tqdm(files, desc=f"Copying {scene}", total=len(files)):
 			shutil.copyfile(os.path.join(source_path, file), os.path.join(output_path, file))
 
+		if not args.copy_masks:
+			continue
+		
 		mask_path = os.path.join(args.source, "masks")
 		for i, img_name in tqdm(enumerate(sorted(os.listdir(os.path.join(mask_path)))), desc="Copying masks", total=len(os.listdir(os.path.join(mask_path)))):
 			img = ski.io.imread(os.path.join(mask_path, img_name))
